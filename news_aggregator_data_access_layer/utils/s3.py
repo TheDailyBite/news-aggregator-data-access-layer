@@ -62,3 +62,18 @@ def store_object_in_s3(
 
 def dt_to_lexicographic_s3_prefix(dt: datetime) -> str:
     return dt.strftime(DT_LEXICOGRAPHIC_STR_FORMAT)
+
+
+def store_success_file(
+    bucket_name: str,
+    prefix: str,
+    success_marker_fn: str,
+    s3_client: boto3.client = boto3.client(
+        service_name="s3",
+        region_name=REGION_NAME,
+    ),
+) -> None:
+    object_key = f"{prefix}/{success_marker_fn}"
+    print(f"Uploading success file {object_key} to S3 bucket {bucket_name}...")
+    body = dt_to_lexicographic_s3_prefix(datetime.utcnow())
+    store_object_in_s3(bucket_name, object_key, body, s3_client=s3_client)

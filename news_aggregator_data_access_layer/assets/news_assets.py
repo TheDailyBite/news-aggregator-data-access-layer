@@ -11,6 +11,7 @@ from news_aggregator_data_access_layer.utils.s3 import (
     dt_to_lexicographic_s3_prefix,
     read_objects_from_prefix_with_extension,
     store_object_in_s3,
+    store_success_file,
 )
 
 
@@ -36,6 +37,7 @@ class CandidateArticles:
         self.candidate_dt_str = dt_to_lexicographic_s3_prefix(candidate_dt)
         self.candidate_articles: List[RawArticle] = []
         self.candidate_article_s3_extension = ".json"
+        self.success_marker_fn = "__SUCCESS__"
 
     def load_articles(self, **kwargs: Any) -> List[RawArticle]:
         if self.result_ref_type == ResultRefTypes.S3:
@@ -99,5 +101,7 @@ class CandidateArticles:
             object_key = self._get_raw_article_s3_object_key(aggregator_id, topic, article_id)
             body = article.json()
             store_object_in_s3(CANDIDATE_ARTICLES_S3_BUCKET, object_key, body, s3_client=s3_client)
-        # TODO - store success file?
+        store_success_file(
+            CANDIDATE_ARTICLES_S3_BUCKET, prefix, self.success_marker_fn, s3_client=s3_client
+        )
         return CANDIDATE_ARTICLES_S3_BUCKET, prefix

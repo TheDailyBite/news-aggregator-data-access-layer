@@ -10,6 +10,7 @@ from news_aggregator_data_access_layer.utils.s3 import (
     dt_to_lexicographic_s3_prefix,
     read_objects_from_prefix_with_extension,
     store_object_in_s3,
+    store_success_file,
 )
 
 TEST_BUCKET_NAME = "test-bucket"
@@ -101,3 +102,19 @@ def test_dt_to_lexicographic_s3_prefix():
     dt = datetime.datetime(2023, 4, 11, 21, 2, 39, 4166)
     expected_lexicographic_s3_prefix = "2023/04/11/21/02/39/004166"
     assert dt_to_lexicographic_s3_prefix(dt) == expected_lexicographic_s3_prefix
+
+
+@mock_s3
+def test_store_success_file():
+    # set the bucket name, prefix, and file extension
+    bucket_name = TEST_BUCKET_NAME
+    prefix = "my-prefix/"
+    success_marker_fn = "__SUCCESS__"
+
+    # create the S3 bucket and upload some test objects
+    s3 = boto3.client("s3")
+    s3.create_bucket(Bucket=bucket_name)
+
+    # test storing a success file
+    store_success_file(bucket_name, prefix, success_marker_fn, s3_client=s3)
+    assert s3.head_object(Bucket=bucket_name, Key=f"{prefix}/{success_marker_fn}")

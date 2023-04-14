@@ -233,62 +233,71 @@ def test_candidate_articles_store_articles_in_s3():
     with mock.patch(
         "news_aggregator_data_access_layer.assets.news_assets.store_object_in_s3"
     ) as mock_store_objects:
-        candidate_articles = CandidateArticles(
-            result_ref_type=ResultRefTypes.S3, candidate_dt=TEST_DT
-        )
-        raw_article_1 = RawArticle(
-            article_id="article_id",
-            aggregator_id="aggregator_id",
-            topic="topic",
-            title="the article title",
-            url="url",
-            article_data="article_data",
-            sorting="date",
-        )
-        raw_article_2 = RawArticle(
-            article_id="article_id 2",
-            aggregator_id="aggregator_id",
-            topic="topic 2",
-            title="the article title 2",
-            url="url 2",
-            article_data="article_data 2",
-            sorting="date",
-        )
-        raw_articles = [raw_article_1, raw_article_2]
-        test_s3_client = "test_s3_client"
-        test_topic = "test_topic"
-        test_aggregator_id = "test_aggregator_id"
-        prefix = candidate_articles._get_raw_candidates_s3_object_prefix(
-            test_aggregator_id, test_topic
-        )
-        raw_article_1_key = candidate_articles._get_raw_article_s3_object_key(
-            test_aggregator_id, test_topic, raw_article_1.article_id
-        )
-        raw_article_2_key = candidate_articles._get_raw_article_s3_object_key(
-            test_aggregator_id, test_topic, raw_article_2.article_id
-        )
-        kwargs = {
-            "s3_client": test_s3_client,
-            "topic": test_topic,
-            "aggregator_id": test_aggregator_id,
-            "articles": raw_articles,
-        }
-        expected_result = (CANDIDATE_ARTICLES_S3_BUCKET, prefix)
-        actual_result = candidate_articles._store_articles_in_s3(**kwargs)
-        mock_store_objects.assert_has_calls(
-            [
-                mock.call(
-                    CANDIDATE_ARTICLES_S3_BUCKET,
-                    raw_article_1_key,
-                    raw_article_1.json(),
-                    s3_client=test_s3_client,
-                ),
-                mock.call(
-                    CANDIDATE_ARTICLES_S3_BUCKET,
-                    raw_article_2_key,
-                    raw_article_2.json(),
-                    s3_client=test_s3_client,
-                ),
-            ]
-        )
-        assert actual_result == expected_result
+        with mock.patch(
+            "news_aggregator_data_access_layer.assets.news_assets.store_success_file"
+        ) as mock_store_success_file:
+            candidate_articles = CandidateArticles(
+                result_ref_type=ResultRefTypes.S3, candidate_dt=TEST_DT
+            )
+            raw_article_1 = RawArticle(
+                article_id="article_id",
+                aggregator_id="aggregator_id",
+                topic="topic",
+                title="the article title",
+                url="url",
+                article_data="article_data",
+                sorting="date",
+            )
+            raw_article_2 = RawArticle(
+                article_id="article_id 2",
+                aggregator_id="aggregator_id",
+                topic="topic 2",
+                title="the article title 2",
+                url="url 2",
+                article_data="article_data 2",
+                sorting="date",
+            )
+            raw_articles = [raw_article_1, raw_article_2]
+            test_s3_client = "test_s3_client"
+            test_topic = "test_topic"
+            test_aggregator_id = "test_aggregator_id"
+            prefix = candidate_articles._get_raw_candidates_s3_object_prefix(
+                test_aggregator_id, test_topic
+            )
+            raw_article_1_key = candidate_articles._get_raw_article_s3_object_key(
+                test_aggregator_id, test_topic, raw_article_1.article_id
+            )
+            raw_article_2_key = candidate_articles._get_raw_article_s3_object_key(
+                test_aggregator_id, test_topic, raw_article_2.article_id
+            )
+            kwargs = {
+                "s3_client": test_s3_client,
+                "topic": test_topic,
+                "aggregator_id": test_aggregator_id,
+                "articles": raw_articles,
+            }
+            expected_result = (CANDIDATE_ARTICLES_S3_BUCKET, prefix)
+            actual_result = candidate_articles._store_articles_in_s3(**kwargs)
+            mock_store_objects.assert_has_calls(
+                [
+                    mock.call(
+                        CANDIDATE_ARTICLES_S3_BUCKET,
+                        raw_article_1_key,
+                        raw_article_1.json(),
+                        s3_client=test_s3_client,
+                    ),
+                    mock.call(
+                        CANDIDATE_ARTICLES_S3_BUCKET,
+                        raw_article_2_key,
+                        raw_article_2.json(),
+                        s3_client=test_s3_client,
+                    ),
+                ]
+            )
+            mock_store_success_file.assert_called_once_with(
+                CANDIDATE_ARTICLES_S3_BUCKET,
+                prefix,
+                candidate_articles.success_marker_fn,
+                s3_client=test_s3_client,
+            )
+            assert actual_result == expected_result
