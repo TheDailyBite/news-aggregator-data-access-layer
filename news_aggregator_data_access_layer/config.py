@@ -8,3 +8,4 @@ LOCAL_TESTING = os.environ.get("LOCAL_TESTING", "false").lower() in ["true"]
 CANDIDATE_ARTICLES_S3_BUCKET = os.environ.get(
     "CANDIDATE_ARTICLES_S3_BUCKET", f"news-aggregator-candidate-articles-{DEPLOYMENT_STAGE}"
 )
+SELF_USER_ID = "___bamchip___"

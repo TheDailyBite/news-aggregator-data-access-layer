@@ -191,6 +191,7 @@ def test_candidate_articles_load_articles_from_s3():
 
 
 def test_candidate_articles_store_articles():
+    prefix = "some_prefix"
     candidate_articles = CandidateArticles(result_ref_type=ResultRefTypes.S3, candidate_dt=TEST_DT)
     raw_article_1 = RawArticle(
         article_id="article_id",
@@ -211,6 +212,7 @@ def test_candidate_articles_store_articles():
         sorting="date",
     )
     raw_articles = [raw_article_1, raw_article_2]
+    result = (CANDIDATE_ARTICLES_S3_BUCKET, prefix)
     with mock.patch.object(
         candidate_articles, "_store_articles_in_s3"
     ) as mock_store_articles_in_s3:
@@ -220,7 +222,8 @@ def test_candidate_articles_store_articles():
             "aggregator_id": "bing",
             "articles": raw_articles,
         }
-        expected_result = None
+        mock_store_articles_in_s3.return_value = result
+        expected_result = result
         actual_result = candidate_articles.store_articles(**kwargs)
         mock_store_articles_in_s3.assert_called_once_with(**kwargs)
         assert actual_result == expected_result
@@ -255,6 +258,9 @@ def test_candidate_articles_store_articles_in_s3():
         test_s3_client = "test_s3_client"
         test_topic = "test_topic"
         test_aggregator_id = "test_aggregator_id"
+        prefix = candidate_articles._get_raw_candidates_s3_object_prefix(
+            test_aggregator_id, test_topic
+        )
         raw_article_1_key = candidate_articles._get_raw_article_s3_object_key(
             test_aggregator_id, test_topic, raw_article_1.article_id
         )
@@ -267,7 +273,8 @@ def test_candidate_articles_store_articles_in_s3():
             "aggregator_id": test_aggregator_id,
             "articles": raw_articles,
         }
-        candidate_articles._store_articles_in_s3(**kwargs)
+        expected_result = (CANDIDATE_ARTICLES_S3_BUCKET, prefix)
+        actual_result = candidate_articles._store_articles_in_s3(**kwargs)
         mock_store_objects.assert_has_calls(
             [
                 mock.call(
@@ -284,3 +291,4 @@ def test_candidate_articles_store_articles_in_s3():
                 ),
             ]
         )
+        assert actual_result == expected_result
