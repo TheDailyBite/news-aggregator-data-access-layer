@@ -64,15 +64,16 @@ class CandidateArticles:
             CANDIDATE_ARTICLES_S3_BUCKET,
             prefix,
             self.candidate_article_s3_extension,
+            self.success_marker_fn,
             s3_client=s3_client,
         )
         return [(obj_data[0], RawArticle.parse_raw(obj_data[1])) for obj_data in objs_data]
 
     def _get_raw_candidates_s3_object_prefix(self, aggregator_id: str, topic: str) -> str:
-        return f"raw_candidate_articles/{self.candidate_dt_str}/{aggregator_id}/{topic}/"
+        return f"raw_candidate_articles/{self.candidate_dt_str}/{aggregator_id}/{topic}"
 
     def _get_raw_article_s3_object_key(self, aggregator_id: str, topic: str, article_id) -> str:
-        return f"raw_candidate_articles/{self.candidate_dt_str}/{aggregator_id}/{topic}/{article_id}{self.candidate_article_s3_extension}"
+        return f"{self._get_raw_candidates_s3_object_prefix(aggregator_id, topic)}/{article_id}{self.candidate_article_s3_extension}"
 
     def store_articles(self, **kwargs: Any) -> Tuple[str, str]:
         if self.result_ref_type == ResultRefTypes.S3:

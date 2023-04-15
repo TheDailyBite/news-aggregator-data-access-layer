@@ -185,6 +185,7 @@ def test_candidate_articles_load_articles_from_s3():
             CANDIDATE_ARTICLES_S3_BUCKET,
             expected_prefix,
             candidate_articles.candidate_article_s3_extension,
+            candidate_articles.success_marker_fn,
             s3_client=test_s3_client,
         )
         assert actual_result == expected_result
