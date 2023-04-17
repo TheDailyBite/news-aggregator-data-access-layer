@@ -7,3 +7,16 @@ class S3ObjectAlreadyExistsException(Exception):
 
     def __str__(self):
         return self.message
+
+
+class S3SuccessFileDoesNotExistException(Exception):
+    """Exception raised when a success file does not exist in S3"""
+
+    def __init__(self, bucket_name: str, prefix: str):
+        self.message = (
+            f"Success file does not exist in S3 bucket {bucket_name} with prefix {prefix}."
+        )
+        super().__init__(self.message)
+
+    def __str__(self):
+        return self.message
