@@ -4,12 +4,9 @@ from unittest import mock
 
 import pytest
 
-from news_aggregator_data_access_layer.assets.news_assets import (
-    CANDIDATE_ARTICLES_S3_BUCKET,
-    CandidateArticles,
-    RawArticle,
-    ResultRefTypes,
-)
+from news_aggregator_data_access_layer.assets.news_assets import CandidateArticles, RawArticle
+from news_aggregator_data_access_layer.config import CANDIDATE_ARTICLES_S3_BUCKET
+from news_aggregator_data_access_layer.constants import ResultRefTypes
 
 TEST_DT = datetime(2023, 4, 11, 21, 2, 39, 4166)
 
@@ -23,7 +20,7 @@ def test_raw_article():
         url="url",
         article_data="article_data",
         sorting="date",
-    )
+    )  # type: ignore
     assert raw_article.article_id == "article_id"
     assert raw_article.aggregator_id == "aggregator_id"
     assert raw_article.topic == "topic"
@@ -105,7 +102,7 @@ def test_candidate_articles_load_articles():
         url="url",
         article_data="article_data",
         sorting="date",
-    )
+    )  # type: ignore
     raw_article_2_key = "2023/04/11/21/02/39/004166/article_id 2.json"
     raw_article_2 = RawArticle(
         article_id="article_id 2",
@@ -115,7 +112,7 @@ def test_candidate_articles_load_articles():
         url="url 2",
         article_data="article_data 2",
         sorting="date",
-    )
+    )  # type: ignore
     raw_articles = [(raw_article_1_key, raw_article_1), (raw_article_2_key, raw_article_2)]
     with mock.patch.object(
         candidate_articles, "_load_articles_from_s3", return_value=raw_articles
@@ -129,7 +126,7 @@ def test_candidate_articles_load_articles():
 
 def test_candidate_articles_load_articles_raises_not_implemented_error():
     result_ref_type = "Not supported type"
-    candidate_articles = CandidateArticles(result_ref_type=result_ref_type, candidate_dt=TEST_DT)
+    candidate_articles = CandidateArticles(result_ref_type=result_ref_type, candidate_dt=TEST_DT)  # type: ignore
     with pytest.raises(NotImplementedError) as exc_info:
         kwargs = {"some_key": "some_value"}
         actual_result = candidate_articles.load_articles(**kwargs)
@@ -152,7 +149,7 @@ def test_candidate_articles_load_articles_from_s3():
             url="url",
             article_data="article_data",
             sorting="date",
-        )
+        )  # type: ignore
         raw_article_2_key = "2023/04/11/21/02/39/004166/article_id 2.json"
         raw_article_2 = RawArticle(
             article_id="article_id 2",
@@ -162,7 +159,7 @@ def test_candidate_articles_load_articles_from_s3():
             url="url 2",
             article_data="article_data 2",
             sorting="date",
-        )
+        )  # type: ignore
         expected_result = [(raw_article_1_key, raw_article_1), (raw_article_2_key, raw_article_2)]
         raw_articles = [
             (raw_article_1_key, raw_article_1.json()),
@@ -202,7 +199,7 @@ def test_candidate_articles_store_articles():
         url="url",
         article_data="article_data",
         sorting="date",
-    )
+    )  # type: ignore
     raw_article_2 = RawArticle(
         article_id="article_id 2",
         aggregator_id="aggregator_id",
@@ -211,7 +208,7 @@ def test_candidate_articles_store_articles():
         url="url 2",
         article_data="article_data 2",
         sorting="date",
-    )
+    )  # type: ignore
     raw_articles = [raw_article_1, raw_article_2]
     result = (CANDIDATE_ARTICLES_S3_BUCKET, prefix)
     with mock.patch.object(
@@ -248,7 +245,7 @@ def test_candidate_articles_store_articles_in_s3():
                 url="url",
                 article_data="article_data",
                 sorting="date",
-            )
+            )  # type: ignore
             raw_article_2 = RawArticle(
                 article_id="article_id 2",
                 aggregator_id="aggregator_id",
@@ -257,7 +254,7 @@ def test_candidate_articles_store_articles_in_s3():
                 url="url 2",
                 article_data="article_data 2",
                 sorting="date",
-            )
+            )  # type: ignore
             raw_articles = [raw_article_1, raw_article_2]
             test_s3_client = "test_s3_client"
             test_topic = "test_topic"

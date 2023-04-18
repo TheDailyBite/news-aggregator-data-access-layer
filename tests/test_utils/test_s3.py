@@ -121,7 +121,7 @@ def test_read_objects_from_prefix_with_extension_raise_due_to_no_success_file():
             bucket_name, prefix, file_extension, success_marker_fn, s3_client=s3
         )
         assert (
-            exc_info.value
+            exc_info.value.message
             == f"Success file does not exist in S3 bucket {bucket_name} with prefix {prefix}."
         )
 

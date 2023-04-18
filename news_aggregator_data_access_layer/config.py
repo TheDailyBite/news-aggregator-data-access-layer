@@ -10,3 +10,4 @@ CANDIDATE_ARTICLES_S3_BUCKET = os.environ.get(
     "CANDIDATE_ARTICLES_S3_BUCKET", f"news-aggregator-candidate-articles-{DEPLOYMENT_STAGE}"
 )
 SELF_USER_ID = "___bamchip___"
+DEFAULT_LOGGER_NAME = "news_aggregator_data_access_layer"

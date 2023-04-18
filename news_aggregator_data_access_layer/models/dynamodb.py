@@ -16,17 +16,20 @@ from pynamodb_attributes.unicode_enum import UnicodeEnumAttribute
 
 from news_aggregator_data_access_layer.config import DEPLOYMENT_STAGE, DYNAMODB_HOST, REGION_NAME
 from news_aggregator_data_access_layer.constants import AggregatorRunStatus, ResultRefTypes
+from news_aggregator_data_access_layer.utils.telemetry import setup_logger
+
+logger = setup_logger(__name__)
 
 
 def create_tables():
     if not AggregatorRuns.exists():
-        print("Creating AggregatorRuns table...")
+        logger.info("Creating AggregatorRuns table...")
         AggregatorRuns.create_table(wait=True)
     if not UserTopics.exists():
-        print("Creating UserTopics table...")
+        logger.info("Creating UserTopics table...")
         UserTopics.create_table(wait=True)
     if not TrustedNewsProviders.exists():
-        print("Creating TrustedNewsProviders table...")
+        logger.info("Creating TrustedNewsProviders table...")
         TrustedNewsProviders.create_table(wait=True)
 
 

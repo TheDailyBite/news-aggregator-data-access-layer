@@ -3,10 +3,9 @@ from unittest import mock
 
 import pytest
 
+from news_aggregator_data_access_layer.constants import AggregatorRunStatus, ResultRefTypes
 from news_aggregator_data_access_layer.models.dynamodb import (
     AggregatorRuns,
-    AggregatorRunStatus,
-    ResultRefTypes,
     TrustedNewsProviders,
     UserTopics,
 )
@@ -19,14 +18,14 @@ def test_user_topics_init():
     user_topics = UserTopics(
         user_id="user_id",
         topic="topic",
-        categories=["category"],
+        categories={"category"},
         is_active=True,
         date_created=TEST_DT,
         max_aggregator_results=10,
     )
     assert user_topics.user_id == "user_id"
     assert user_topics.topic == "topic"
-    assert user_topics.categories == ["category"]
+    assert user_topics.categories == {"category"}
     assert user_topics.is_active == True
     assert user_topics.date_created == TEST_DT
     assert user_topics.max_aggregator_results == 10
@@ -37,12 +36,12 @@ def test_trusted_news_providers_init():
         provider_name="provider_name",
         provider_url="provider_url",
         trust_score=60,
-        provider_aliases=["provider_alias_1", "provider_alias_2"],
+        provider_aliases={"provider_alias_1", "provider_alias_2"},
     )
     assert trusted_news_providers.provider_name == "provider_name"
     assert trusted_news_providers.provider_url == "provider_url"
     assert trusted_news_providers.trust_score == 60
-    assert trusted_news_providers.provider_aliases == ["provider_alias_1", "provider_alias_2"]
+    assert trusted_news_providers.provider_aliases == {"provider_alias_1", "provider_alias_2"}
 
 
 def test_aggregator_runs_init_default_vals():

@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import Any, List
 
 import json
 from datetime import datetime
@@ -12,6 +12,9 @@ from news_aggregator_data_access_layer.exceptions import (
     S3ObjectAlreadyExistsException,
     S3SuccessFileDoesNotExistException,
 )
+from news_aggregator_data_access_layer.utils.telemetry import setup_logger
+
+logger = setup_logger(__name__)
 
 
 def read_objects_from_prefix_with_extension(
@@ -22,7 +25,7 @@ def read_objects_from_prefix_with_extension(
     s3_client: boto3.client = boto3.client(
         service_name="s3", region_name=REGION_NAME, endpoint_url=S3_ENDPOINT_URL
     ),
-) -> List[Tuple[str, str]]:
+) -> List[List[Any]]:
     objs_data = []
     if not success_file_exists_at_prefix(bucket_name, prefix, success_marker_fn, s3_client):
         raise S3SuccessFileDoesNotExistException(bucket_name, prefix)
@@ -52,15 +55,19 @@ def store_object_in_s3(
     # check if the object already exists
     try:
         s3_client.head_object(Bucket=bucket_name, Key=object_key)
-        print(f"Object {object_key} already exists in S3 bucket {bucket_name}.")
+        logger.error(f"Object {object_key} already exists in S3 bucket {bucket_name}.")
         raise S3ObjectAlreadyExistsException(bucket_name, object_key)
     except botocore.exceptions.ClientError as e:
         # if the object doesn't exist, upload it to S3
         if e.response["Error"]["Code"] == "404":
-            print(f"Uploading object {object_key} to S3 bucket {bucket_name}...")
+            logger.info(f"Uploading object {object_key} to S3 bucket {bucket_name}...")
             s3_client.put_object(Bucket=bucket_name, Key=object_key, Body=body)
         else:
             # if there was some other error, raise an exception
+            logger.error(
+                f"Error while uploading object {object_key} to S3 bucket {bucket_name}.  Details: {e}",
+                exc_info=True,
+            )
             raise e
 
 
@@ -77,7 +84,7 @@ def store_success_file(
     ),
 ) -> None:
     object_key = f"{prefix}/{success_marker_fn}"
-    print(f"Uploading success file {object_key} to S3 bucket {bucket_name}...")
+    logger.info(f"Uploading success file {object_key} to S3 bucket {bucket_name}...")
     body = dt_to_lexicographic_s3_prefix(datetime.utcnow())
     store_object_in_s3(bucket_name, object_key, body, s3_client=s3_client)
 
@@ -99,4 +106,8 @@ def success_file_exists_at_prefix(
             return False
         else:
             # if there was some other error, raise an exception
+            logger.error(
+                f"Error while checking if success file exists at prefix {prefix} in S3 bucket {bucket_name}. Details: {e}",
+                exc_info=True,
+            )
             raise e
