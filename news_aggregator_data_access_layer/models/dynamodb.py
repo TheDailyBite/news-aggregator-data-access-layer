@@ -52,7 +52,8 @@ class UserTopics(Model):
 
     user_id = UnicodeAttribute(hash_key=True)
     topic = UnicodeAttribute(range_key=True)
-    categories = UnicodeSetAttribute(null=True)
+    # "" category means non categorical topic (e.g. "Generative+AI" across all categories)
+    categories = UnicodeSetAttribute(default="")
     is_active = BooleanAttribute()
     date_created = UTCDateTimeAttribute(default_for_new=datetime.datetime.utcnow())
     max_aggregator_results = NumberAttribute(null=True)
