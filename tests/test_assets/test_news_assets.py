@@ -7,7 +7,7 @@ import pytest
 
 from news_aggregator_data_access_layer.assets.news_assets import CandidateArticles, RawArticle
 from news_aggregator_data_access_layer.config import CANDIDATE_ARTICLES_S3_BUCKET
-from news_aggregator_data_access_layer.constants import ResultRefTypes
+from news_aggregator_data_access_layer.constants import ALL_CATEGORIES_STR, ResultRefTypes
 from news_aggregator_data_access_layer.utils.s3 import dt_to_lexicographic_s3_prefix
 
 TEST_DT = datetime(2023, 4, 11, 21, 2, 39, 4166)
@@ -36,7 +36,8 @@ def test_raw_article():
     assert raw_article.article_data == "article_data"
     assert raw_article.sorting == "date"
     assert raw_article.discovered_topic == ""
-    assert raw_article.category == ""
+    assert raw_article.requested_category == ALL_CATEGORIES_STR
+    assert raw_article.category == ALL_CATEGORIES_STR
 
 
 def test_raw_article_parse_raw():
@@ -63,7 +64,8 @@ def test_raw_article_parse_raw():
     assert raw_article.sorting == "date"
     assert raw_article.title == "the article title"
     assert raw_article.discovered_topic == ""
-    assert raw_article.category == ""
+    assert raw_article.requested_category == ALL_CATEGORIES_STR
+    assert raw_article.category == ALL_CATEGORIES_STR
     assert raw_article.date_published == TEST_DT_STR
     assert raw_article.aggregation_index == 0
 
@@ -82,6 +84,7 @@ def test_raw_article_parse_raw_with_optional():
                 "article_data": "article_data",
                 "sorting": "date",
                 "discovered_topic": "some_discovered_topic",
+                "requested_category": "some_requested_category",
                 "category": "some_category",
             }
         )
@@ -97,6 +100,7 @@ def test_raw_article_parse_raw_with_optional():
     assert raw_article.sorting == "date"
     assert raw_article.discovered_topic == "some_discovered_topic"
     assert raw_article.category == "some_category"
+    assert raw_article.requested_category == "some_requested_category"
 
 
 def test_candidate_articles_init():
