@@ -1,7 +1,8 @@
-from typing import Any, List, Mapping, Optional, Tuple
+from typing import Any, List, Optional, Tuple
 
 import copy
 import json
+from collections.abc import Mapping
 from datetime import datetime
 
 from pydantic import BaseModel
@@ -45,7 +46,7 @@ class CandidateArticles:
         self.result_ref_type = result_ref_type
         self.candidate_dt = candidate_dt
         self.candidate_date_str = dt_to_lexicographic_date_s3_prefix(candidate_dt)
-        self.candidate_articles: List[RawArticle] = []
+        self.candidate_articles: list[RawArticle] = []
         self.candidate_article_s3_extension = ".json"
         self.success_marker_fn = "__SUCCESS__"
         self.success_metadata_aggregators_key = "aggregators"
@@ -55,7 +56,7 @@ class CandidateArticles:
             self.success_metadata_aggregators_dt_key: "",
         }
 
-    def load_articles(self, **kwargs: Any) -> List[RawArticle]:
+    def load_articles(self, **kwargs: Any) -> list[RawArticle]:
         if self.result_ref_type == ResultRefTypes.S3:
             unsorted_candidate_articles = self._load_articles_from_s3(**kwargs)
             # TODO - implement sorting
@@ -67,7 +68,7 @@ class CandidateArticles:
             )
 
     # <bucket>/raw_candidate_articles/<candidate_date_str>/<topic>/<article_id>.json
-    def _load_articles_from_s3(self, **kwargs: Any) -> List[Tuple[str, RawArticle]]:
+    def _load_articles_from_s3(self, **kwargs: Any) -> list[tuple[str, RawArticle]]:
         s3_client = kwargs.get("s3_client")
         topic = kwargs.get("topic")
         if not topic:
@@ -91,12 +92,10 @@ class CandidateArticles:
     def _get_raw_candidates_s3_object_prefix(self, topic: str) -> str:
         return f"raw_candidate_articles/{self.candidate_date_str}/{topic}"
 
-    def _get_raw_article_s3_object_key(
-        self, aggregator_id: str, topic: str, article_id: str
-    ) -> str:
+    def _get_raw_article_s3_object_key(self, topic: str, article_id: str) -> str:
         return f"{self._get_raw_candidates_s3_object_prefix(topic)}/{article_id}{self.candidate_article_s3_extension}"
 
-    def store_articles(self, **kwargs: Any) -> Tuple[str, str]:
+    def store_articles(self, **kwargs: Any) -> tuple[str, str]:
         if self.result_ref_type == ResultRefTypes.S3:
             return self._store_articles_in_s3(**kwargs)
         else:
@@ -105,7 +104,7 @@ class CandidateArticles:
             )
 
     # article id will be <pad_left_0_to_9_digits><index> if sorted by relevance or the published_date + unique_str if sorted by date
-    def _store_articles_in_s3(self, **kwargs: Any) -> Tuple[str, str]:
+    def _store_articles_in_s3(self, **kwargs: Any) -> tuple[str, str]:
         s3_client = kwargs.get("s3_client")
         topic = kwargs.get("topic")
         if not topic:
@@ -113,7 +112,7 @@ class CandidateArticles:
         aggregator_id = kwargs.get("aggregator_id")
         if not aggregator_id:
             raise ValueError("aggregator_id is required")
-        articles: List[RawArticle] = kwargs["articles"]
+        articles: list[RawArticle] = kwargs["articles"]
         if not all(isinstance(article, RawArticle) for article in articles):
             raise ValueError("articles must be a list of RawArticle")
         aggregation_dt = kwargs.get("aggregation_dt")
@@ -123,7 +122,7 @@ class CandidateArticles:
         for article in articles:
             article_id = article.article_id
             # all stored as json
-            object_key = self._get_raw_article_s3_object_key(aggregator_id, topic, article_id)
+            object_key = self._get_raw_article_s3_object_key(topic, article_id)
             body = article.json()
             metadata: Mapping[str, str] = dict()
             store_object_in_s3(
