@@ -307,10 +307,10 @@ def test_candidate_articles_store_articles_in_s3_success_file_not_exists():
                 test_aggregator_id = "test_aggregator_id"
                 prefix = candidate_articles._get_raw_candidates_s3_object_prefix(test_topic)
                 raw_article_1_key = candidate_articles._get_raw_article_s3_object_key(
-                    test_aggregator_id, test_topic, raw_article_1.article_id
+                    test_topic, raw_article_1.article_id
                 )
                 raw_article_2_key = candidate_articles._get_raw_article_s3_object_key(
-                    test_aggregator_id, test_topic, raw_article_2.article_id
+                    test_topic, raw_article_2.article_id
                 )
                 kwargs = {
                     "s3_client": test_s3_client,
@@ -418,10 +418,10 @@ def test_candidate_articles_store_articles_in_s3_success_file_exists():
                     test_aggregator_id = "test_aggregator_id"
                     prefix = candidate_articles._get_raw_candidates_s3_object_prefix(test_topic)
                     raw_article_1_key = candidate_articles._get_raw_article_s3_object_key(
-                        test_aggregator_id, test_topic, raw_article_1.article_id
+                        test_topic, raw_article_1.article_id
                     )
                     raw_article_2_key = candidate_articles._get_raw_article_s3_object_key(
-                        test_aggregator_id, test_topic, raw_article_2.article_id
+                        test_topic, raw_article_2.article_id
                     )
                     kwargs = {
                         "s3_client": test_s3_client,
