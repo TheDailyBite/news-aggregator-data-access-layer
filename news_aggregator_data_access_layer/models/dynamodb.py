@@ -15,7 +15,11 @@ from pynamodb.models import Model
 from pynamodb_attributes.unicode_enum import UnicodeEnumAttribute
 
 from news_aggregator_data_access_layer.config import DEPLOYMENT_STAGE, DYNAMODB_HOST, REGION_NAME
-from news_aggregator_data_access_layer.constants import AggregatorRunStatus, ResultRefTypes
+from news_aggregator_data_access_layer.constants import (
+    ALL_CATEGORIES_STR,
+    AggregatorRunStatus,
+    ResultRefTypes,
+)
 from news_aggregator_data_access_layer.utils.telemetry import setup_logger
 
 logger = setup_logger(__name__)
@@ -53,7 +57,7 @@ class UserTopics(Model):
     user_id = UnicodeAttribute(hash_key=True)
     topic = UnicodeAttribute(range_key=True)
     # "" category means non categorical topic (e.g. "Generative+AI" across all categories)
-    categories = UnicodeSetAttribute(default="")
+    categories = UnicodeSetAttribute(default=ALL_CATEGORIES_STR)  # type: ignore
     is_active = BooleanAttribute()
     date_created = UTCDateTimeAttribute(default_for_new=datetime.datetime.utcnow())
     max_aggregator_results = NumberAttribute(null=True)

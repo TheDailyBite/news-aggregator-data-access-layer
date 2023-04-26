@@ -31,6 +31,7 @@ class RawArticle(BaseModel):
     topic: str
     # this is the topic that was discovered by an algo
     discovered_topic: Optional[str] = ""
+    requested_category: Optional[str] = ""
     category: Optional[str] = ""
     title: str
     url: str
