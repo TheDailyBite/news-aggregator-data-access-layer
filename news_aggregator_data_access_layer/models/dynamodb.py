@@ -10,7 +10,7 @@ from pynamodb.attributes import (
     UTCDateTimeAttribute,
     VersionAttribute,
 )
-from pynamodb.indexes import AllProjection, LocalSecondaryIndex
+from pynamodb.indexes import AllProjection, GlobalSecondaryIndex, LocalSecondaryIndex
 from pynamodb.models import Model
 from pynamodb_attributes.unicode_enum import UnicodeEnumAttribute
 
@@ -18,6 +18,7 @@ from news_aggregator_data_access_layer.config import DEPLOYMENT_STAGE, DYNAMODB_
 from news_aggregator_data_access_layer.constants import (
     ALL_CATEGORIES_STR,
     AggregatorRunStatus,
+    ArticleApprovalStatus,
     ResultRefTypes,
 )
 from news_aggregator_data_access_layer.utils.telemetry import setup_logger
@@ -35,6 +36,9 @@ def create_tables():
     if not TrustedNewsProviders.exists():
         logger.info("Creating TrustedNewsProviders table...")
         TrustedNewsProviders.create_table(wait=True)
+    if not SourcedArticles.exists():
+        logger.info("Creating SourcedArticles table...")
+        SourcedArticles.create_table(wait=True)
 
 
 class UserTopics(Model):
@@ -113,3 +117,59 @@ class AggregatorRuns(Model):
     run_end_time = UTCDateTimeAttribute(null=True)
     # {"type": "s3", "bucket": "<s3_bucket>", "key": "<prefix>"}
     result_ref = MapAttribute(null=True)  # type: ignore
+
+
+class SourcedArticlesGSI1(GlobalSecondaryIndex):  # type: ignore
+    """
+    This class represents a global secondary index which uses the article approval status as the hash key and the
+    article_id as the range key. This is mainly used to query for articles by approval status and approve
+    pending articles.
+    """
+
+    class Meta:
+        # All attributes are projected
+        projection = AllProjection()
+
+    article_approval_status = UnicodeEnumAttribute(hash_key=True, enum_type=ArticleApprovalStatus)
+    article_id = UnicodeAttribute(range_key=True)
+
+
+class SourcedArticles(Model):
+    """
+    A DynamoDB Sourced Articles model.
+    """
+
+    class Meta:
+        table_name = f"sourced-articles-{DEPLOYMENT_STAGE}"
+        # Specifies the region
+        region = REGION_NAME
+        # Optional: Specify the hostname only if it needs to be changed from the default AWS setting
+        host = DYNAMODB_HOST
+        # Specifies the write capacity - unused for on-demand tables
+        write_capacity_units = 1
+        # Specifies the read capacity - unused for on-demand tables
+        read_capacity_units = 1
+        billing_mode = "PAY_PER_REQUEST"
+
+    # a concatenation of topic and requested category
+    topic_requested_category = UnicodeAttribute(hash_key=True)
+    # TODO - figure out what this is - maybe it can be <published_date_str>_<article_id> where article id is a slice of uuid4 so that it is still sorted?
+    article_id = UnicodeAttribute(range_key=True)
+    dt_published = UTCDateTimeAttribute(null=False)
+    dt_sourced = UTCDateTimeAttribute(null=False)
+    title = UnicodeAttribute(null=False)
+    topic = UnicodeAttribute(null=False)
+    # NOTE - this is the labeled category, not the requested one
+    category = UnicodeAttribute(null=True)
+    original_article_id = UnicodeAttribute(null=False)
+    providers = UnicodeSetAttribute(null=True)
+    article_approval_status = UnicodeEnumAttribute(
+        ArticleApprovalStatus,
+        default_for_new=ArticleApprovalStatus.PENDING,
+    )
+    short_summary_ref = UnicodeAttribute(null=True)
+    medium_summary_ref = UnicodeAttribute(null=True)
+    long_summary_ref = UnicodeAttribute(null=True)
+    thumbs_up = NumberAttribute(default_for_new=0)
+    thumbs_down = NumberAttribute(default_for_new=0)
+    gsi_1 = SourcedArticlesGSI1()
