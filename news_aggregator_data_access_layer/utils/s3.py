@@ -1,6 +1,7 @@
-from typing import Any, Dict, List, Mapping, Tuple
+from typing import Any, Dict, List, Tuple
 
 import json
+from collections.abc import Mapping
 from datetime import datetime
 
 import boto3
@@ -29,7 +30,7 @@ def read_objects_from_prefix_with_extension(
     s3_client: boto3.client = boto3.client(
         service_name="s3", region_name=REGION_NAME, endpoint_url=S3_ENDPOINT_URL
     ),
-) -> List[List[Any]]:
+) -> list[list[Any]]:
     objs_data = []
     if check_success_file:
         logger.info(
@@ -59,7 +60,7 @@ def get_object(
     s3_client: boto3.client = boto3.client(
         service_name="s3", region_name=REGION_NAME, endpoint_url=S3_ENDPOINT_URL
     ),
-) -> Tuple[str, Dict[str, str]]:
+) -> tuple[str, dict[str, str]]:
     obj = s3_client.get_object(Bucket=bucket_name, Key=object_key)
     return (obj["Body"].read().decode("utf-8"), obj.get("Metadata", dict()))
 
@@ -98,6 +99,10 @@ def dt_to_lexicographic_s3_prefix(dt: datetime) -> str:
     return dt.strftime(DT_LEXICOGRAPHIC_STR_FORMAT)
 
 
+def lexicographic_s3_prefix_to_dt(prefix: str) -> datetime:
+    return datetime.strptime(prefix, DT_LEXICOGRAPHIC_STR_FORMAT)
+
+
 def dt_to_lexicographic_date_s3_prefix(dt: datetime) -> str:
     return dt.strftime(DATE_LEXICOGRAPHIC_STR_FORMAT)
 
@@ -126,7 +131,7 @@ def get_success_file(
     s3_client: boto3.client = boto3.client(
         service_name="s3", region_name=REGION_NAME, endpoint_url=S3_ENDPOINT_URL
     ),
-) -> Tuple[str, Dict[str, str]]:
+) -> tuple[str, dict[str, str]]:
     object_key = f"{prefix}/{success_marker_fn}"
     logger.info(f"Downloading success file {object_key} from S3 bucket {bucket_name}...")
     return get_object(bucket_name, object_key, s3_client=s3_client)

@@ -20,3 +20,14 @@ class S3SuccessFileDoesNotExistException(Exception):
 
     def __str__(self):
         return self.message
+
+
+class PublishedDateInvalidFormat(Exception):
+    """Exception raised when an article has an invalid published date format (i.e. not matching expected for news aggregator)"""
+
+    def __init__(self, published_date: str, expected_published_date_format: str):
+        self.message = f"The published date {published_date} does not match expected format {expected_published_date_format}."
+        super().__init__(self.message)
+
+    def __str__(self):
+        return self.message

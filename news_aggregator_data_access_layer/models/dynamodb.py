@@ -156,7 +156,7 @@ class SourcedArticles(Model):
     # TODO - figure out what this is - maybe it can be <published_date_str>_<article_id> where article id is a slice of uuid4 so that it is still sorted?
     article_id = UnicodeAttribute(range_key=True)
     dt_published = UTCDateTimeAttribute(null=False)
-    dt_sourced = UTCDateTimeAttribute(null=False)
+    dt_sourced = UTCDateTimeAttribute(null=False, default_for_new=datetime.datetime.utcnow())
     title = UnicodeAttribute(null=False)
     topic = UnicodeAttribute(null=False)
     # NOTE - this is the labeled category, not the requested one
