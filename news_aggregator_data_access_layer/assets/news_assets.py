@@ -5,10 +5,14 @@ import json
 from collections.abc import Mapping
 from datetime import datetime
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from news_aggregator_data_access_layer.config import CANDIDATE_ARTICLES_S3_BUCKET
-from news_aggregator_data_access_layer.constants import DT_LEXICOGRAPHIC_STR_FORMAT, ResultRefTypes
+from news_aggregator_data_access_layer.constants import (
+    DATE_PUBLISHED_ARTICLE_REGEX,
+    DT_LEXICOGRAPHIC_STR_FORMAT,
+    ResultRefTypes,
+)
 from news_aggregator_data_access_layer.utils.s3 import (
     dt_to_lexicographic_date_s3_prefix,
     dt_to_lexicographic_s3_prefix,
@@ -26,7 +30,8 @@ logger = setup_logger(__name__)
 class RawArticle(BaseModel):
     article_id: str
     aggregator_id: str
-    date_published: str
+    # iso8601 format with seconds precision
+    date_published: str = Field(regex=DATE_PUBLISHED_ARTICLE_REGEX)
     aggregation_index: int
     # this is the search query
     topic: str

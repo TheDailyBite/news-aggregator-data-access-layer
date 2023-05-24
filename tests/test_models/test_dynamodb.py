@@ -3,9 +3,14 @@ from unittest import mock
 
 import pytest
 
-from news_aggregator_data_access_layer.constants import AggregatorRunStatus, ResultRefTypes
+from news_aggregator_data_access_layer.constants import (
+    AggregatorRunStatus,
+    ArticleApprovalStatus,
+    ResultRefTypes,
+)
 from news_aggregator_data_access_layer.models.dynamodb import (
     AggregatorRuns,
+    SourcedArticles,
     TrustedNewsProviders,
     UserTopics,
 )
@@ -71,3 +76,26 @@ def test_aggregator_runs_init():
     assert aggregator_runs.run_status == AggregatorRunStatus.COMPLETE
     assert aggregator_runs.run_end_time == TEST_DT_END
     assert aggregator_runs.result_ref.as_dict() == refs
+
+
+def test_sourced_articles_init():
+    sourced_article = SourcedArticles(
+        topic_requested_category="some_topic_cat_1",
+        article_id="2023/04/11/21/02/39/004166_5ee858d7",
+        dt_published=TEST_DT,
+        dt_sourced=TEST_DT_END,
+        title="Some title",
+        category="Some category",
+        original_article_id="Some original article id",
+        providers={"Some provider"},
+        article_approval_status=ArticleApprovalStatus.PENDING,
+    )
+    assert sourced_article.topic_requested_category == "some_topic_cat_1"
+    assert sourced_article.article_id == "2023/04/11/21/02/39/004166_5ee858d7"
+    assert sourced_article.dt_published == TEST_DT
+    assert sourced_article.dt_sourced == TEST_DT_END
+    assert sourced_article.title == "Some title"
+    assert sourced_article.category == "Some category"
+    assert sourced_article.original_article_id == "Some original article id"
+    assert sourced_article.providers == {"Some provider"}
+    assert sourced_article.article_approval_status == ArticleApprovalStatus.PENDING

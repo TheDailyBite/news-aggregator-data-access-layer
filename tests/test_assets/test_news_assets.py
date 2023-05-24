@@ -11,6 +11,7 @@ from news_aggregator_data_access_layer.constants import ALL_CATEGORIES_STR, Resu
 from news_aggregator_data_access_layer.utils.s3 import dt_to_lexicographic_s3_prefix
 
 TEST_DT = datetime(2023, 4, 11, 21, 2, 39, 4166)
+TEST_PUBLISHED_DATE_STR = "2023-04-11T21:02:39+00:00"
 TEST_DT_STR = dt_to_lexicographic_s3_prefix(TEST_DT)
 
 
@@ -18,7 +19,7 @@ def test_raw_article():
     raw_article = RawArticle(
         article_id="article_id",
         aggregator_id="aggregator_id",
-        date_published=TEST_DT_STR,
+        date_published=TEST_PUBLISHED_DATE_STR,
         aggregation_index=0,
         topic="topic",
         title="the article title",
@@ -28,7 +29,7 @@ def test_raw_article():
     )
     assert raw_article.article_id == "article_id"
     assert raw_article.aggregator_id == "aggregator_id"
-    assert raw_article.date_published == TEST_DT_STR
+    assert raw_article.date_published == TEST_PUBLISHED_DATE_STR
     assert raw_article.aggregation_index == 0
     assert raw_article.topic == "topic"
     assert raw_article.url == "url"
@@ -46,7 +47,7 @@ def test_raw_article_parse_raw():
             {
                 "article_id": "article_id",
                 "aggregator_id": "aggregator_id",
-                "date_published": TEST_DT_STR,
+                "date_published": TEST_PUBLISHED_DATE_STR,
                 "aggregation_index": 0,
                 "topic": "topic",
                 "title": "the article title",
@@ -66,7 +67,7 @@ def test_raw_article_parse_raw():
     assert raw_article.discovered_topic == ""
     assert raw_article.requested_category == ALL_CATEGORIES_STR
     assert raw_article.category == ALL_CATEGORIES_STR
-    assert raw_article.date_published == TEST_DT_STR
+    assert raw_article.date_published == TEST_PUBLISHED_DATE_STR
     assert raw_article.aggregation_index == 0
 
 
@@ -76,7 +77,7 @@ def test_raw_article_parse_raw_with_optional():
             {
                 "article_id": "article_id",
                 "aggregator_id": "aggregator_id",
-                "date_published": TEST_DT_STR,
+                "date_published": TEST_PUBLISHED_DATE_STR,
                 "aggregation_index": 0,
                 "topic": "topic",
                 "title": "the article title",
@@ -91,7 +92,7 @@ def test_raw_article_parse_raw_with_optional():
     )
     assert raw_article.article_id == "article_id"
     assert raw_article.aggregator_id == "aggregator_id"
-    assert raw_article.date_published == TEST_DT_STR
+    assert raw_article.date_published == TEST_PUBLISHED_DATE_STR
     assert raw_article.aggregation_index == 0
     assert raw_article.topic == "topic"
     assert raw_article.url == "url"
@@ -118,7 +119,7 @@ def test_candidate_articles_load_articles():
     raw_article_1 = RawArticle(
         article_id="article_id",
         aggregator_id="aggregator_id",
-        date_published=TEST_DT_STR,
+        date_published=TEST_PUBLISHED_DATE_STR,
         aggregation_index=0,
         topic="topic",
         title="the article title",
@@ -130,7 +131,7 @@ def test_candidate_articles_load_articles():
     raw_article_2 = RawArticle(
         article_id="article_id 2",
         aggregator_id="aggregator_id",
-        date_published=TEST_DT_STR,
+        date_published=TEST_PUBLISHED_DATE_STR,
         aggregation_index=1,
         topic="topic 2",
         title="the article title 2",
@@ -173,7 +174,7 @@ def test_candidate_articles_load_articles_from_s3():
             raw_article_1 = RawArticle(
                 article_id="article_id",
                 aggregator_id="aggregator_id",
-                date_published=TEST_DT_STR,
+                date_published=TEST_PUBLISHED_DATE_STR,
                 aggregation_index=0,
                 topic="topic",
                 title="the article title",
@@ -185,7 +186,7 @@ def test_candidate_articles_load_articles_from_s3():
             raw_article_2 = RawArticle(
                 article_id="article_id 2",
                 aggregator_id="aggregator_id",
-                date_published=TEST_DT_STR,
+                date_published=TEST_PUBLISHED_DATE_STR,
                 aggregation_index=1,
                 topic="topic 2",
                 title="the article title 2",
@@ -227,7 +228,7 @@ def test_candidate_articles_store_articles():
     raw_article_1 = RawArticle(
         article_id="article_id",
         aggregator_id="aggregator_id",
-        date_published=TEST_DT_STR,
+        date_published=TEST_PUBLISHED_DATE_STR,
         aggregation_index=0,
         topic="topic",
         title="the article title",
@@ -238,7 +239,7 @@ def test_candidate_articles_store_articles():
     raw_article_2 = RawArticle(
         article_id="article_id 2",
         aggregator_id="aggregator_id",
-        date_published=TEST_DT_STR,
+        date_published=TEST_PUBLISHED_DATE_STR,
         aggregation_index=1,
         topic="topic 2",
         title="the article title 2",
@@ -282,7 +283,7 @@ def test_candidate_articles_store_articles_in_s3_success_file_not_exists():
                 raw_article_1 = RawArticle(
                     article_id="article_id",
                     aggregator_id="aggregator_id",
-                    date_published=TEST_DT_STR,
+                    date_published=TEST_PUBLISHED_DATE_STR,
                     aggregation_index=0,
                     topic="topic",
                     title="the article title",
@@ -293,7 +294,7 @@ def test_candidate_articles_store_articles_in_s3_success_file_not_exists():
                 raw_article_2 = RawArticle(
                     article_id="article_id 2",
                     aggregator_id="aggregator_id",
-                    date_published=TEST_DT_STR,
+                    date_published=TEST_PUBLISHED_DATE_STR,
                     aggregation_index=1,
                     topic="topic 2",
                     title="the article title 2",
@@ -393,7 +394,7 @@ def test_candidate_articles_store_articles_in_s3_success_file_exists():
                     raw_article_1 = RawArticle(
                         article_id="article_id",
                         aggregator_id="aggregator_id",
-                        date_published=TEST_DT_STR,
+                        date_published=TEST_PUBLISHED_DATE_STR,
                         aggregation_index=0,
                         topic="topic",
                         title="the article title",
@@ -404,7 +405,7 @@ def test_candidate_articles_store_articles_in_s3_success_file_exists():
                     raw_article_2 = RawArticle(
                         article_id="article_id 2",
                         aggregator_id="aggregator_id",
-                        date_published=TEST_DT_STR,
+                        date_published=TEST_PUBLISHED_DATE_STR,
                         aggregation_index=1,
                         topic="topic 2",
                         title="the article title 2",
