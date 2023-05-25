@@ -8,6 +8,7 @@ RELEVANCE_SORTING_STR = "Relevance"
 DATE_SORTING_STR = "Date"
 ALL_CATEGORIES_STR = ""
 DATE_PUBLISHED_ARTICLE_REGEX = r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\+00\:00$"
+AGGREGATION_NOT_SOURCED_IDENTIFIER = "0"
 
 
 class ResultRefTypes(Enum):
@@ -33,7 +34,7 @@ class SummarizationLength(Enum):
 
     SHORT = "Short"
     MEDIUM = "Medium"
-    LONG = "Long"
+    FULL = "Full"
 
 
 class ArticleApprovalStatus(Enum):
