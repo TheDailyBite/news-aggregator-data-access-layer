@@ -38,6 +38,9 @@ def create_tables():
     if not TrustedNewsProviders.exists():
         logger.info("Creating TrustedNewsProviders table...")
         TrustedNewsProviders.create_table(wait=True)
+    if not NewsAggregators.exists():
+        logger.info("Creating NewsAggregators table...")
+        NewsAggregators.create_table(wait=True)
     if not AggregatorRuns.exists():
         logger.info("Creating AggregatorRuns table...")
         AggregatorRuns.create_table(wait=True)
@@ -130,6 +133,30 @@ class TrustedNewsProviders(Model):
     provider_domain = UnicodeAttribute(hash_key=True)
     provider_name = UnicodeAttribute()
     trust_score = NumberAttribute(default_for_new=50)
+
+
+class NewsAggregators(Model):
+    """
+    A DynamoDB NewsAggregators model.
+    """
+
+    class Meta:
+        table_name = f"news-aggregators-{DEPLOYMENT_STAGE}"
+        # Specifies the region
+        region = REGION_NAME
+        # Optional: Specify the hostname only if it needs to be changed from the default AWS setting
+        host = DYNAMODB_HOST
+        # Specifies the write capacity - unused for on-demand tables
+        write_capacity_units = 1
+        # Specifies the read capacity - unused for on-demand tables
+        read_capacity_units = 1
+        billing_mode = "PAY_PER_REQUEST"
+
+    # this will be a constant in each aggregator (e.g. "bing")
+    aggregator_id = UnicodeAttribute(hash_key=True)
+    topic_id = UnicodeAttribute(range_key=True)
+    aggregation_data_last_end_time = UTCDateTimeAttribute(null=True)
+    version = VersionAttribute()
 
 
 class AggregatorRunsGSI1(GlobalSecondaryIndex):  # type: ignore
