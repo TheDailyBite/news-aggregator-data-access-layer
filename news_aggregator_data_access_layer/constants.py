@@ -9,6 +9,23 @@ DATE_SORTING_STR = "Date"
 ALL_CATEGORIES_STR = ""
 DATE_PUBLISHED_ARTICLE_REGEX = r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\+00\:00$"
 AGGREGATION_NOT_SOURCED_IDENTIFIER = "0"
+SUPPORTED_AGGREGATION_CATEGORIES = {
+    ALL_CATEGORIES_STR,
+    "business",
+    "entertainment",
+    "health",
+    "politics",
+    "products",
+    "science-and-technology",
+    "sports",
+    "us",
+    "world",
+    "world_africa",
+    "world_americas",
+    "world_asia",
+    "world_europe",
+    "world_middleeast",
+}
 
 
 class ResultRefTypes(Enum):

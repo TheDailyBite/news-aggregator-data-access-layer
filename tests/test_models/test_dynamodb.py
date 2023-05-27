@@ -11,7 +11,6 @@ from news_aggregator_data_access_layer.constants import (
 )
 from news_aggregator_data_access_layer.models.dynamodb import (
     AggregatorRuns,
-    NewsAggregators,
     NewsTopics,
     SourcedArticles,
     TrustedNewsProviders,
@@ -31,7 +30,8 @@ def test_news_topics_init():
         is_active=True,
         date_created=TEST_DT,
         max_aggregator_results=10,
-        date_last_aggregated=TEST_DT_END,
+        dt_last_aggregated=TEST_DT_END,
+        bing_aggregation_last_end_time=TEST_DT_END,
     )
     assert news_topics.topic_id == "topic_id"
     assert news_topics.topic == "topic"
@@ -39,7 +39,8 @@ def test_news_topics_init():
     assert news_topics.is_active == True
     assert news_topics.date_created == TEST_DT
     assert news_topics.max_aggregator_results == 10
-    assert news_topics.date_last_aggregated == TEST_DT_END
+    assert news_topics.dt_last_aggregated == TEST_DT_END
+    assert news_topics.bing_aggregation_last_end_time == TEST_DT_END
 
 
 def test_user_topic_subscriptions_init():
@@ -62,17 +63,6 @@ def test_trusted_news_providers_init():
     assert trusted_news_providers.provider_name == "provider_name"
     assert trusted_news_providers.provider_domain == "venturebeat.com"
     assert trusted_news_providers.trust_score == 60
-
-
-def test_news_aggregators_init():
-    news_aggregators = NewsAggregators(
-        aggregator_id="aggregator_id",
-        topic_id="topic_id",
-        aggregation_data_last_end_time=TEST_DT,
-    )
-    assert news_aggregators.aggregator_id == "aggregator_id"
-    assert news_aggregators.topic_id == "topic_id"
-    assert news_aggregators.aggregation_data_last_end_time == TEST_DT
 
 
 def test_aggregator_runs_init():

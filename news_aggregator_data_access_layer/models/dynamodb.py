@@ -38,9 +38,6 @@ def create_tables():
     if not TrustedNewsProviders.exists():
         logger.info("Creating TrustedNewsProviders table...")
         TrustedNewsProviders.create_table(wait=True)
-    if not NewsAggregators.exists():
-        logger.info("Creating NewsAggregators table...")
-        NewsAggregators.create_table(wait=True)
     if not AggregatorRuns.exists():
         logger.info("Creating AggregatorRuns table...")
         AggregatorRuns.create_table(wait=True)
@@ -67,12 +64,16 @@ class NewsTopics(Model):
         billing_mode = "PAY_PER_REQUEST"
 
     topic_id = UnicodeAttribute(hash_key=True, default_for_new=str(uuid.uuid4()))
+    # NOTE - maybe a GSI can be created for topic + category in the future to avoid a scan
     topic = UnicodeAttribute()
     category = UnicodeAttribute()
     is_active = BooleanAttribute()
     date_created = UTCDateTimeAttribute(default_for_new=datetime.datetime.utcnow())
     max_aggregator_results = NumberAttribute()
-    date_last_aggregated = UTCDateTimeAttribute(null=True)
+    dt_last_aggregated = UTCDateTimeAttribute(null=True)
+    bing_aggregation_last_end_time = UTCDateTimeAttribute(null=True)
+    # NOTE - add other aggregator attributes here
+    version = VersionAttribute()
 
 
 class UserTopicSubscriptionsGSI1(GlobalSecondaryIndex):  # type: ignore
@@ -133,30 +134,6 @@ class TrustedNewsProviders(Model):
     provider_domain = UnicodeAttribute(hash_key=True)
     provider_name = UnicodeAttribute()
     trust_score = NumberAttribute(default_for_new=50)
-
-
-class NewsAggregators(Model):
-    """
-    A DynamoDB NewsAggregators model.
-    """
-
-    class Meta:
-        table_name = f"news-aggregators-{DEPLOYMENT_STAGE}"
-        # Specifies the region
-        region = REGION_NAME
-        # Optional: Specify the hostname only if it needs to be changed from the default AWS setting
-        host = DYNAMODB_HOST
-        # Specifies the write capacity - unused for on-demand tables
-        write_capacity_units = 1
-        # Specifies the read capacity - unused for on-demand tables
-        read_capacity_units = 1
-        billing_mode = "PAY_PER_REQUEST"
-
-    # this will be a constant in each aggregator (e.g. "bing")
-    aggregator_id = UnicodeAttribute(hash_key=True)
-    topic_id = UnicodeAttribute(range_key=True)
-    aggregation_data_last_end_time = UTCDateTimeAttribute(null=True)
-    version = VersionAttribute()
 
 
 class AggregatorRunsGSI1(GlobalSecondaryIndex):  # type: ignore
