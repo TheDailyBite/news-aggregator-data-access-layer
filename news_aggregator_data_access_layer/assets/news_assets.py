@@ -5,6 +5,7 @@ import json
 from collections.abc import Mapping
 from datetime import datetime
 
+from newsplease import NewsPlease
 from pydantic import BaseModel, Field
 
 from news_aggregator_data_access_layer.config import CANDIDATE_ARTICLES_S3_BUCKET
@@ -44,13 +45,29 @@ class RawArticle(BaseModel):
     article_data: str
     # relevance or date
     sorting: str
+    article_processed_data: Optional[str] = ""
+
+    def process_article_data(self):
+        if self.article_processed_data:
+            return self.article_processed_data
+        else:
+            article = NewsPlease.from_url(self.url)
+            self.article_processed_data = json.dumps(article.get_serializable_dict())
 
 
 class CandidateArticles:
-    def __init__(self, result_ref_type: ResultRefTypes, candidate_dt: datetime):
+    def __init__(
+        self,
+        result_ref_type: ResultRefTypes,
+        aggregator_id: str,
+        aggregation_run_id: str,
+        aggregation_dt: datetime,
+    ):
         self.result_ref_type = result_ref_type
-        self.candidate_dt = candidate_dt
-        self.candidate_date_str = dt_to_lexicographic_date_s3_prefix(candidate_dt)
+        self.aggregation_dt = aggregation_dt
+        self.aggregation_date_str = dt_to_lexicographic_date_s3_prefix(aggregation_dt)
+        self.aggregator_id = aggregator_id
+        self.aggregation_run_id = aggregation_run_id
         self.candidate_articles: list[RawArticle] = []
         self.candidate_article_s3_extension = ".json"
         self.success_marker_fn = "__SUCCESS__"
@@ -72,13 +89,12 @@ class CandidateArticles:
                 f"Result reference type {self.result_ref_type} not implemented"
             )
 
-    # <bucket>/raw_candidate_articles/<candidate_date_str>/<topic>/<article_id>.json
+    # <bucket>/raw_candidate_articles/<aggregation_run_id>/<article_id>.json
     def _load_articles_from_s3(self, **kwargs: Any) -> list[tuple[str, RawArticle]]:
         s3_client = kwargs.get("s3_client")
-        topic = kwargs.get("topic")
-        if not topic:
-            raise ValueError("topic is required")
-        prefix = self._get_raw_candidates_s3_object_prefix(topic)
+        if not s3_client:
+            raise ValueError("s3_client parameter cannot be null")
+        prefix = self._get_raw_candidates_s3_object_prefix()
         objs_data = read_objects_from_prefix_with_extension(
             CANDIDATE_ARTICLES_S3_BUCKET,
             prefix,
@@ -90,15 +106,14 @@ class CandidateArticles:
         success_file_body, metadata = get_success_file(
             CANDIDATE_ARTICLES_S3_BUCKET, prefix, self.success_marker_fn, s3_client=s3_client
         )
-        # TODO - in future could pass expected aggregator ids in kwargs to check against success file metadata
         logger.info(f"Success file body: {success_file_body} and metadata {metadata}")
         return [(obj_data[0], RawArticle.parse_raw(obj_data[1])) for obj_data in objs_data]
 
-    def _get_raw_candidates_s3_object_prefix(self, topic: str) -> str:
-        return f"raw_candidate_articles/{self.candidate_date_str}/{topic}"
+    def _get_raw_candidates_s3_object_prefix(self) -> str:
+        return f"raw_candidate_articles/{self.aggregation_run_id}"
 
-    def _get_raw_article_s3_object_key(self, topic: str, article_id: str) -> str:
-        return f"{self._get_raw_candidates_s3_object_prefix(topic)}/{article_id}{self.candidate_article_s3_extension}"
+    def _get_raw_article_s3_object_key(self, article_id: str) -> str:
+        return f"{self._get_raw_candidates_s3_object_prefix()}/{article_id}{self.candidate_article_s3_extension}"
 
     def store_articles(self, **kwargs: Any) -> tuple[str, str]:
         if self.result_ref_type == ResultRefTypes.S3:
@@ -108,26 +123,18 @@ class CandidateArticles:
                 f"Result reference type {self.result_ref_type} not implemented"
             )
 
-    # article id will be <pad_left_0_to_9_digits><index> if sorted by relevance or the published_date + unique_str if sorted by date
     def _store_articles_in_s3(self, **kwargs: Any) -> tuple[str, str]:
         s3_client = kwargs.get("s3_client")
-        topic = kwargs.get("topic")
-        if not topic:
-            raise ValueError("topic is required")
-        aggregator_id = kwargs.get("aggregator_id")
-        if not aggregator_id:
-            raise ValueError("aggregator_id is required")
+        if not s3_client:
+            raise ValueError("s3_client parameter cannot be null")
         articles: list[RawArticle] = kwargs["articles"]
         if not all(isinstance(article, RawArticle) for article in articles):
             raise ValueError("articles must be a list of RawArticle")
-        aggregation_dt = kwargs.get("aggregation_dt")
-        if not aggregation_dt:
-            raise ValueError("aggregation_dt is required")
-        prefix = self._get_raw_candidates_s3_object_prefix(topic)
+        prefix = self._get_raw_candidates_s3_object_prefix()
         for article in articles:
             article_id = article.article_id
             # all stored as json
-            object_key = self._get_raw_article_s3_object_key(topic, article_id)
+            object_key = self._get_raw_article_s3_object_key(article_id)
             body = article.json()
             metadata: Mapping[str, str] = dict()
             store_object_in_s3(
@@ -139,27 +146,9 @@ class CandidateArticles:
                 s3_client=s3_client,
             )
         success_obj_metadata = copy.deepcopy(self.default_success_file_metadata)
-        aggregation_dt_str = dt_to_lexicographic_s3_prefix(aggregation_dt)
-        if success_file_exists_at_prefix(
-            CANDIDATE_ARTICLES_S3_BUCKET, prefix, self.success_marker_fn, s3_client=s3_client
-        ):
-            success_obj_body, success_obj_metadata = get_success_file(
-                CANDIDATE_ARTICLES_S3_BUCKET, prefix, self.success_marker_fn, s3_client=s3_client
-            )
-            logger.info(
-                f"Existing Success file body: {success_obj_body} and metadata {success_obj_metadata}. Will now update metadata for new aggregator {aggregator_id}"
-            )
-        success_obj_metadata[self.success_metadata_aggregators_key] = (
-            success_obj_metadata[self.success_metadata_aggregators_key] + f",{aggregator_id}"
-            if success_obj_metadata[self.success_metadata_aggregators_key]
-            else aggregator_id
-        )
-        success_obj_metadata[self.success_metadata_aggregators_dt_key] = (
-            success_obj_metadata[self.success_metadata_aggregators_dt_key]
-            + f",{aggregation_dt_str}"
-            if success_obj_metadata[self.success_metadata_aggregators_dt_key]
-            else aggregation_dt_str
-        )
+        aggregation_dt_str = dt_to_lexicographic_s3_prefix(self.aggregation_dt)
+        success_obj_metadata[self.success_metadata_aggregators_key] = self.aggregator_id
+        success_obj_metadata[self.success_metadata_aggregators_dt_key] = aggregation_dt_str
         store_success_file(
             CANDIDATE_ARTICLES_S3_BUCKET,
             prefix,
