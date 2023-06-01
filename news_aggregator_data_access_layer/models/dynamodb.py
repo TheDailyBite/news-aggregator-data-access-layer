@@ -143,7 +143,7 @@ class TrustedNewsProviders(Model):
 class AggregatorRunsGSI1(GlobalSecondaryIndex):  # type: ignore
     """
     This class represents a global secondary index which uses the sourcing_run_id as the hash key and the
-    run_datetime as the range key. This is mainly used to query for aggregation runs that have yet to be sourced.
+    aggregation_start_date as the range key. This is mainly used to query for aggregation runs that have yet to be sourced.
     """
 
     class Meta:
@@ -151,7 +151,7 @@ class AggregatorRunsGSI1(GlobalSecondaryIndex):  # type: ignore
         projection = AllProjection()
 
     sourcing_run_id = UnicodeAttribute(hash_key=True)
-    article_id = UnicodeAttribute(range_key=True)
+    aggregation_start_date = UnicodeAttribute(range_key=True)
 
 
 class AggregatorRuns(Model):
