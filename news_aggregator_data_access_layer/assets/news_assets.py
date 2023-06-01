@@ -5,6 +5,7 @@ import json
 from collections.abc import Mapping
 from datetime import datetime
 
+import tldextract
 from newsplease import NewsPlease
 from pydantic import BaseModel, Field
 
@@ -52,6 +53,12 @@ class RawArticle(BaseModel):
             return self.article_processed_data
         else:
             article = NewsPlease.from_url(self.url)
+            if not article:
+                ext_res = tldextract.extract(self.url)
+                domain = ext_res.domain.lower()
+                logger.warning(f"Could not process article with url {self.url} and domain {domain}")
+                # TODO - emit metric with domain
+                return
             self.article_processed_data = json.dumps(article.get_serializable_dict())
 
 
