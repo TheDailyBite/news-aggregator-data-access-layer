@@ -68,7 +68,9 @@ class NewsTopics(Model):
     topic = UnicodeAttribute()
     category = UnicodeAttribute()
     is_active = BooleanAttribute()
-    date_created = UTCDateTimeAttribute(default_for_new=datetime.datetime.utcnow())
+    date_created = UTCDateTimeAttribute(
+        default_for_new=datetime.datetime.now(datetime.timezone.utc)
+    )
     max_aggregator_results = NumberAttribute()
     dt_last_aggregated = UTCDateTimeAttribute(null=True)
     bing_aggregation_last_end_time = UTCDateTimeAttribute(null=True)
@@ -110,7 +112,9 @@ class UserTopicSubscriptions(Model):
 
     user_id = UnicodeAttribute(hash_key=True)
     topic_id = UnicodeAttribute(range_key=True)
-    date_subscribed = UTCDateTimeAttribute(default_for_new=datetime.datetime.utcnow())
+    date_subscribed = UTCDateTimeAttribute(
+        default_for_new=datetime.datetime.now(datetime.timezone.utc)
+    )
     gsi_1 = UserTopicSubscriptionsGSI1()
 
 
@@ -179,7 +183,9 @@ class AggregatorRuns(Model):
         AggregatorRunStatus,
         default_for_new=AggregatorRunStatus.IN_PROGRESS,
     )
-    execution_start_time = UTCDateTimeAttribute(default_for_new=datetime.datetime.utcnow())
+    execution_start_time = UTCDateTimeAttribute(
+        default_for_new=datetime.datetime.now(datetime.timezone.utc)
+    )
     execution_end_time = UTCDateTimeAttribute(null=True)
     # {"type": "s3", "bucket": "<s3_bucket>", "key": "<prefix>"}
     aggregated_articles_ref = MapAttribute(null=True)  # type: ignore
@@ -223,7 +229,7 @@ class SourcedArticles(Model):
     topic_id = UnicodeAttribute(hash_key=True)
     # TODO - figure out what this is - maybe it can be <published_date_str>_<article_id> where article id is a slice of uuid4 so that it is still sorted?
     sourced_article_id = UnicodeAttribute(range_key=True)
-    dt_sourced = UTCDateTimeAttribute(default_for_new=datetime.datetime.utcnow())
+    dt_sourced = UTCDateTimeAttribute(default_for_new=datetime.datetime.now(datetime.timezone.utc))
     dt_published = UTCDateTimeAttribute()
     date_published = UnicodeAttribute()
     title = UnicodeAttribute()

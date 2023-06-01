@@ -2,7 +2,7 @@ from typing import Any, Dict, List, Tuple
 
 import json
 from collections.abc import Mapping
-from datetime import datetime
+from datetime import datetime, timezone
 
 import boto3
 import botocore
@@ -118,7 +118,7 @@ def store_success_file(
 ) -> None:
     object_key = f"{prefix}/{success_marker_fn}"
     logger.info(f"Uploading success file {object_key} to S3 bucket {bucket_name}...")
-    body = dt_to_lexicographic_s3_prefix(datetime.utcnow())
+    body = dt_to_lexicographic_s3_prefix(datetime.now(timezone.utc))
     store_object_in_s3(
         bucket_name, object_key, body, object_metadata, overwrite_allowed=True, s3_client=s3_client
     )
