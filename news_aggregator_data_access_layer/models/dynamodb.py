@@ -46,6 +46,14 @@ def create_tables():
         SourcedArticles.create_table(wait=True)
 
 
+def get_uuid4() -> str:
+    return str(uuid.uuid4())
+
+
+def get_current_dt_utc() -> datetime.datetime:
+    return datetime.datetime.now(datetime.timezone.utc)
+
+
 class NewsTopics(Model):
     """
     A DynamoDB News Topics model.
@@ -63,14 +71,12 @@ class NewsTopics(Model):
         read_capacity_units = 1
         billing_mode = "PAY_PER_REQUEST"
 
-    topic_id = UnicodeAttribute(hash_key=True, default_for_new=str(uuid.uuid4()))
+    topic_id = UnicodeAttribute(hash_key=True, default_for_new=get_uuid4())
     # NOTE - maybe a GSI can be created for topic + category in the future to avoid a scan
     topic = UnicodeAttribute()
     category = UnicodeAttribute()
     is_active = BooleanAttribute()
-    date_created = UTCDateTimeAttribute(
-        default_for_new=datetime.datetime.now(datetime.timezone.utc)
-    )
+    date_created = UTCDateTimeAttribute(default_for_new=get_current_dt_utc())
     max_aggregator_results = NumberAttribute()
     dt_last_aggregated = UTCDateTimeAttribute(null=True)
     bing_aggregation_last_end_time = UTCDateTimeAttribute(null=True)
@@ -112,9 +118,7 @@ class UserTopicSubscriptions(Model):
 
     user_id = UnicodeAttribute(hash_key=True)
     topic_id = UnicodeAttribute(range_key=True)
-    date_subscribed = UTCDateTimeAttribute(
-        default_for_new=datetime.datetime.now(datetime.timezone.utc)
-    )
+    date_subscribed = UTCDateTimeAttribute(default_for_new=get_current_dt_utc())
     gsi_1 = UserTopicSubscriptionsGSI1()
 
 
@@ -173,7 +177,7 @@ class AggregatorRuns(Model):
 
     # this will be a date when the aggregator started, without time
     aggregation_start_date = UnicodeAttribute(hash_key=True)
-    aggregation_run_id = UnicodeAttribute(range_key=True, default_for_new=str(uuid.uuid4()))
+    aggregation_run_id = UnicodeAttribute(range_key=True, default_for_new=get_uuid4())
     # this will be a constant in each aggregator (e.g. "bing")
     aggregator_id = UnicodeAttribute()
     topic_id = UnicodeAttribute()
@@ -183,9 +187,7 @@ class AggregatorRuns(Model):
         AggregatorRunStatus,
         default_for_new=AggregatorRunStatus.IN_PROGRESS,
     )
-    execution_start_time = UTCDateTimeAttribute(
-        default_for_new=datetime.datetime.now(datetime.timezone.utc)
-    )
+    execution_start_time = UTCDateTimeAttribute(default_for_new=get_current_dt_utc())
     execution_end_time = UTCDateTimeAttribute(null=True)
     # {"type": "s3", "bucket": "<s3_bucket>", "key": "<prefix>"}
     aggregated_articles_ref = MapAttribute(null=True)  # type: ignore
@@ -229,7 +231,7 @@ class SourcedArticles(Model):
     topic_id = UnicodeAttribute(hash_key=True)
     # TODO - figure out what this is - maybe it can be <published_date_str>_<article_id> where article id is a slice of uuid4 so that it is still sorted?
     sourced_article_id = UnicodeAttribute(range_key=True)
-    dt_sourced = UTCDateTimeAttribute(default_for_new=datetime.datetime.now(datetime.timezone.utc))
+    dt_sourced = UTCDateTimeAttribute(default_for_new=get_current_dt_utc())
     dt_published = UTCDateTimeAttribute()
     date_published = UnicodeAttribute()
     title = UnicodeAttribute()
