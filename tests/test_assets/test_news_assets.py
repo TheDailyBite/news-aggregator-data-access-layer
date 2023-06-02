@@ -43,6 +43,35 @@ def test_raw_article():
     assert raw_article.category == ALL_CATEGORIES_STR
 
 
+def test_raw_article_process_data_with_provider_domain_no_article_processed_data():
+    raw_article = RawArticle(
+        article_id="article_id",
+        aggregator_id="aggregator_id",
+        date_published=TEST_PUBLISHED_DATE_STR,
+        aggregation_index=0,
+        topic="topic",
+        title="the article title",
+        url="https://www.inc.com/sania-khan/invalid-article.html",
+        article_data="article_data",
+        sorting="date",
+    )
+    raw_article.process_article_data()
+    assert raw_article.article_id == "article_id"
+    assert raw_article.aggregator_id == "aggregator_id"
+    assert raw_article.date_published == TEST_PUBLISHED_DATE_STR
+    assert raw_article.aggregation_index == 0
+    assert raw_article.topic == "topic"
+    assert raw_article.url == "https://www.inc.com/sania-khan/invalid-article.html"
+    assert raw_article.title == "the article title"
+    assert raw_article.article_data == "article_data"
+    assert raw_article.sorting == "date"
+    assert raw_article.discovered_topic == ""
+    assert raw_article.requested_category == ALL_CATEGORIES_STR
+    assert raw_article.category == ALL_CATEGORIES_STR
+    assert raw_article.provider_domain == "inc"
+    assert raw_article.article_processed_data == ""
+
+
 def test_raw_article_parse_raw():
     raw_article = RawArticle.parse_raw(
         json.dumps(
