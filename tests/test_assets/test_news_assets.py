@@ -10,7 +10,12 @@ import pytest
 
 from news_aggregator_data_access_layer.assets.news_assets import CandidateArticles, RawArticle
 from news_aggregator_data_access_layer.config import CANDIDATE_ARTICLES_S3_BUCKET
-from news_aggregator_data_access_layer.constants import ALL_CATEGORIES_STR, ResultRefTypes
+from news_aggregator_data_access_layer.constants import (
+    ALL_CATEGORIES_STR,
+    ARTICLE_NOT_SOURCED_TAGS_FLAG,
+    ARTICLE_SOURCED_TAGS_FLAG,
+    ResultRefTypes,
+)
 from news_aggregator_data_access_layer.utils.s3 import dt_to_lexicographic_s3_prefix
 
 TEST_DT = datetime(2023, 4, 11, 21, 2, 39, 4166)
@@ -566,3 +571,111 @@ def test_candidate_articles__store_articles_in_s3():
         actual_result = candidate_articles._store_articles_in_s3(**kwargs)
         assert actual_result[0] == expected_result[0]
         assert set(actual_result[1]) == set(expected_result[1])
+
+
+def test_candidate_articles_mark_articles_sourced():
+    candidate_articles = CandidateArticles(
+        result_ref_type=ResultRefTypes.S3,
+        topic_id=TEST_TOPIC_ID,
+    )
+    raw_article_1 = RawArticle(
+        article_id="article_id",
+        aggregator_id="aggregator_id",
+        dt_published=TEST_PUBLISHED_ISO_DT,
+        aggregation_index=0,
+        topic_id=TEST_TOPIC_ID,
+        topic="topic",
+        title="the article title",
+        url="url",
+        article_data="article_data",
+        sorting="date",
+    )
+    raw_article_2 = RawArticle(
+        article_id="article_id 2",
+        aggregator_id="aggregator_id",
+        dt_published=TEST_PUBLISHED_ISO_DT,
+        aggregation_index=1,
+        topic_id=TEST_TOPIC_ID,
+        topic="topic",
+        title="the article title 2",
+        url="url 2",
+        article_data="article_data 2",
+        sorting="date",
+    )
+    raw_articles = [raw_article_1, raw_article_2]
+    with mock.patch.object(
+        candidate_articles, "_mark_s3_articles_sourced"
+    ) as mock_mark_s3_articles_sourced:
+        kwargs = {
+            "s3_client": "s3_client",
+            "articles": raw_articles,
+        }
+        candidate_articles.mark_articles_sourced(**kwargs)
+        mock_mark_s3_articles_sourced.assert_called_once_with(**kwargs)
+
+
+def test_candidate_articles__mark_s3_articles_sourced():
+    candidate_articles = CandidateArticles(
+        result_ref_type=ResultRefTypes.S3,
+        topic_id=TEST_TOPIC_ID,
+    )
+    raw_article_1 = RawArticle(
+        article_id="article_id",
+        aggregator_id="aggregator_id",
+        dt_published=TEST_PUBLISHED_ISO_DT,
+        aggregation_index=0,
+        topic_id=TEST_TOPIC_ID,
+        topic="topic",
+        title="the article title",
+        url="url",
+        article_data="article_data",
+        sorting="date",
+    )
+    raw_article_2 = RawArticle(
+        article_id="article_id 2",
+        aggregator_id="aggregator_id",
+        dt_published=TEST_PUBLISHED_ISO_DT_2,
+        aggregation_index=1,
+        topic_id=TEST_TOPIC_ID,
+        topic="topic",
+        title="the article title 2",
+        url="url 2",
+        article_data="article_data 2",
+        sorting="date",
+    )
+    raw_article_1_key = candidate_articles._get_raw_article_s3_object_key(raw_article_1)
+    raw_article_2_key = candidate_articles._get_raw_article_s3_object_key(raw_article_2)
+    raw_articles = [raw_article_1, raw_article_2]
+    with mock.patch(
+        "news_aggregator_data_access_layer.assets.news_assets.get_object_tags"
+    ) as mock_get_object_tags:
+        with mock.patch(
+            "news_aggregator_data_access_layer.assets.news_assets.update_object_tags"
+        ) as mock_update_object_tags:
+            existing_tags = {
+                candidate_articles.is_sourced_article_tag_key: ARTICLE_NOT_SOURCED_TAGS_FLAG
+            }
+            expected_updated_tags = {
+                candidate_articles.is_sourced_article_tag_key: ARTICLE_SOURCED_TAGS_FLAG
+            }
+            mock_get_object_tags.return_value = existing_tags
+            kwargs = {
+                "s3_client": "s3_client",
+                "articles": raw_articles,
+            }
+            candidate_articles._mark_s3_articles_sourced(**kwargs)
+            calls = [
+                mock.call(
+                    bucket_name=CANDIDATE_ARTICLES_S3_BUCKET,
+                    object_key=raw_article_1_key,
+                    object_tags_to_update=expected_updated_tags,
+                    s3_client="s3_client",
+                ),
+                mock.call(
+                    bucket_name=CANDIDATE_ARTICLES_S3_BUCKET,
+                    object_key=raw_article_2_key,
+                    object_tags_to_update=expected_updated_tags,
+                    s3_client="s3_client",
+                ),
+            ]
+            mock_update_object_tags.assert_has_calls(calls)

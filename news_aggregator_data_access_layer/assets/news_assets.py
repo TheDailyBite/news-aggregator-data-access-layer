@@ -12,7 +12,7 @@ from pydantic import BaseModel, Field
 from news_aggregator_data_access_layer.config import CANDIDATE_ARTICLES_S3_BUCKET
 from news_aggregator_data_access_layer.constants import (
     ARTICLE_NOT_SOURCED_TAGS_FLAG,
-    ARTICLE_SOURCED_METADATA_FLAG,
+    ARTICLE_SOURCED_TAGS_FLAG,
     DATE_PUBLISHED_ARTICLE_REGEX,
     DT_LEXICOGRAPHIC_STR_FORMAT,
     ResultRefTypes,
@@ -20,11 +20,13 @@ from news_aggregator_data_access_layer.constants import (
 from news_aggregator_data_access_layer.utils.s3 import (
     dt_to_lexicographic_date_s3_prefix,
     dt_to_lexicographic_s3_prefix,
+    get_object_tags,
     get_success_file,
     read_objects_from_prefix_with_extension,
     store_object_in_s3,
     store_success_file,
     success_file_exists_at_prefix,
+    update_object_tags,
 )
 from news_aggregator_data_access_layer.utils.telemetry import setup_logger
 
@@ -192,3 +194,39 @@ class CandidateArticles:
                 s3_client=s3_client,
             )
         return CANDIDATE_ARTICLES_S3_BUCKET, list(prefixes)
+
+    def mark_articles_sourced(self, **kwargs: Any) -> None:
+        if self.result_ref_type == ResultRefTypes.S3:
+            return self._mark_s3_articles_sourced(**kwargs)
+        else:
+            raise NotImplementedError(
+                f"Result reference type {self.result_ref_type} not implemented"
+            )
+
+    def _mark_s3_articles_sourced(self, **kwargs: Any) -> None:
+        s3_client = kwargs.get("s3_client")
+        if not s3_client:
+            raise ValueError("s3_client parameter cannot be null")
+        articles: list[RawArticle] = kwargs["articles"]
+        if not all(isinstance(article, RawArticle) for article in articles):
+            raise ValueError("articles must be a list of RawArticle")
+        for article in articles:
+            object_key = self._get_raw_article_s3_object_key(article)
+            existing_tags = get_object_tags(
+                bucket_name=CANDIDATE_ARTICLES_S3_BUCKET,
+                object_key=object_key,
+                s3_client=s3_client,
+            )
+            tags_to_update = {
+                self.is_sourced_article_tag_key: ARTICLE_SOURCED_TAGS_FLAG,
+            }
+            existing_tags.update(tags_to_update)
+            logger.info(
+                f"Updating tags for {object_key} to {existing_tags} which will mark the article as sourced"
+            )
+            update_object_tags(
+                bucket_name=CANDIDATE_ARTICLES_S3_BUCKET,
+                object_key=object_key,
+                object_tags_to_update=existing_tags,
+                s3_client=s3_client,
+            )
