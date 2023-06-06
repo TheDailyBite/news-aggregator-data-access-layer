@@ -4,7 +4,7 @@ from datetime import datetime
 from news_aggregator_data_access_layer.exceptions import PublishedDateInvalidFormat
 
 
-def standardize_published_date(dt_str: str, expected_dt_regex: str) -> str:
+def generate_standardized_published_date(dt_str: str, expected_dt_regex: str) -> str:
     """Creates a standardized datetime string in iso8601 format for published date which includes seconds precision.
     The input datetime string may include fractional seconds precision, but the output will not.
     The input datetime string is expected to be in UTC

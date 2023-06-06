@@ -30,6 +30,7 @@ def test_news_topics_init():
         is_active=True,
         date_created=TEST_DT,
         max_aggregator_results=10,
+        daily_publishing_limit=5,
         dt_last_aggregated=TEST_DT_END,
         bing_aggregation_last_end_time=TEST_DT_END,
     )
@@ -39,6 +40,7 @@ def test_news_topics_init():
     assert news_topics.is_active == True
     assert news_topics.date_created == TEST_DT
     assert news_topics.max_aggregator_results == 10
+    assert news_topics.daily_publishing_limit == 5
     assert news_topics.dt_last_aggregated == TEST_DT_END
     assert news_topics.bing_aggregation_last_end_time == TEST_DT_END
 
@@ -66,7 +68,7 @@ def test_trusted_news_providers_init():
 
 
 def test_aggregator_runs_init():
-    refs = {"type": ResultRefTypes.S3, "bucket": "bucket", "key": "key"}
+    refs = {"type": ResultRefTypes.S3, "bucket": "bucket", "paths": "path1,path2"}
     aggregator_run = AggregatorRuns(
         aggregation_start_date=TEST_DATE_STR,
         aggregation_run_id="aggregation_run_id",
@@ -90,7 +92,6 @@ def test_aggregator_runs_init():
     assert aggregator_run.aggregated_articles_ref.as_dict() == refs
     assert aggregator_run.aggregated_articles_count == 10
     assert aggregator_run.run_status == AggregatorRunStatus.IN_PROGRESS
-    assert aggregator_run.sourcing_run_id == AGGREGATION_NOT_SOURCED_IDENTIFIER
 
 
 def test_sourced_articles_init():
@@ -108,7 +109,7 @@ def test_sourced_articles_init():
         short_summary_ref="short_summary_ref",
         medium_summary_ref="medium_summary_ref",
         full_summary_ref="full_summary_ref",
-        aggregation_run_id="aggregation_run_id",
+        sourcing_run_id="sourcing run id",
     )
     assert sourced_article.topic_id == "topic_id"
     assert sourced_article.sourced_article_id == "sourced_article_id"
@@ -126,4 +127,4 @@ def test_sourced_articles_init():
     assert sourced_article.thumbs_up == 0
     assert sourced_article.thumbs_down == 0
     assert sourced_article.article_approval_status == ArticleApprovalStatus.PENDING
-    assert sourced_article.aggregation_run_id == "aggregation_run_id"
+    assert sourced_article.sourcing_run_id == "sourcing run id"

@@ -17,7 +17,6 @@ from pynamodb_attributes.unicode_enum import UnicodeEnumAttribute
 
 from news_aggregator_data_access_layer.config import DEPLOYMENT_STAGE, DYNAMODB_HOST, REGION_NAME
 from news_aggregator_data_access_layer.constants import (
-    AGGREGATION_NOT_SOURCED_IDENTIFIER,
     ALL_CATEGORIES_STR,
     AggregatorRunStatus,
     ArticleApprovalStatus,
@@ -78,6 +77,7 @@ class NewsTopics(Model):
     is_active = BooleanAttribute()
     date_created = UTCDateTimeAttribute()
     max_aggregator_results = NumberAttribute()
+    daily_publishing_limit = NumberAttribute()
     dt_last_aggregated = UTCDateTimeAttribute(null=True)
     bing_aggregation_last_end_time = UTCDateTimeAttribute(null=True)
     # NOTE - add other aggregator attributes here
@@ -144,20 +144,6 @@ class TrustedNewsProviders(Model):
     trust_score = NumberAttribute(default_for_new=50)
 
 
-class AggregatorRunsGSI1(GlobalSecondaryIndex):  # type: ignore
-    """
-    This class represents a global secondary index which uses the sourcing_run_id as the hash key and the
-    aggregation_start_date as the range key. This is mainly used to query for aggregation runs that have yet to be sourced.
-    """
-
-    class Meta:
-        # All attributes are projected
-        projection = AllProjection()
-
-    sourcing_run_id = UnicodeAttribute(hash_key=True)
-    aggregation_start_date = UnicodeAttribute(range_key=True)
-
-
 class AggregatorRuns(Model):
     """
     A DynamoDB Aggregator Runs model.
@@ -189,11 +175,9 @@ class AggregatorRuns(Model):
     )
     execution_start_time = UTCDateTimeAttribute()
     execution_end_time = UTCDateTimeAttribute(null=True)
-    # {"type": "s3", "bucket": "<s3_bucket>", "key": "<prefix>"}
+    # {"type": "s3", "bucket": "<s3_bucket>", "paths": "<comme-separated-prefixes>"}
     aggregated_articles_ref = MapAttribute(null=True)  # type: ignore
     aggregated_articles_count = NumberAttribute(default_for_new=0)
-    sourcing_run_id = UnicodeAttribute(default_for_new=AGGREGATION_NOT_SOURCED_IDENTIFIER)
-    gsi_1 = AggregatorRunsGSI1()
 
 
 class SourcedArticlesGSI1(GlobalSecondaryIndex):  # type: ignore
@@ -249,5 +233,5 @@ class SourcedArticles(Model):
     full_summary_ref = UnicodeAttribute()
     thumbs_up = NumberAttribute(default_for_new=0)
     thumbs_down = NumberAttribute(default_for_new=0)
-    aggregation_run_id = UnicodeAttribute()
+    sourcing_run_id = UnicodeAttribute()
     gsi_1 = SourcedArticlesGSI1()
