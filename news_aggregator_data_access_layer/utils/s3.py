@@ -1,8 +1,9 @@
 from typing import Any, Dict, List, Tuple
 
 import json
+import urllib.parse
 from collections.abc import Mapping
-from datetime import datetime
+from datetime import datetime, timezone
 
 import boto3
 import botocore
@@ -47,10 +48,8 @@ def read_objects_from_prefix_with_extension(
         for list_obj in result.get("Contents", []):
             if list_obj["Key"].endswith(file_extension):
                 object_key = list_obj["Key"]
-                s3_obj = s3_client.get_object(Bucket=bucket_name, Key=object_key)
-                metadata = s3_obj.get("Metadata", dict())
-                body = s3_obj["Body"].read().decode("utf-8")
-                objs_data.append([object_key, body, metadata])
+                body, metadata, tags = get_object(bucket_name, object_key, s3_client=s3_client)
+                objs_data.append([object_key, body, metadata, tags])
     return objs_data
 
 
@@ -60,15 +59,59 @@ def get_object(
     s3_client: boto3.client = boto3.client(
         service_name="s3", region_name=REGION_NAME, endpoint_url=S3_ENDPOINT_URL
     ),
-) -> tuple[str, dict[str, str]]:
+) -> tuple[str, dict[str, str], dict[str, str]]:
     obj = s3_client.get_object(Bucket=bucket_name, Key=object_key)
-    return (obj["Body"].read().decode("utf-8"), obj.get("Metadata", dict()))
+    tags = get_object_tags(bucket_name, object_key, s3_client=s3_client)
+    return (obj["Body"].read().decode("utf-8"), obj.get("Metadata", dict()), tags)
+
+
+def get_object_tags(
+    bucket_name: str,
+    object_key: str,
+    s3_client: boto3.client = boto3.client(
+        service_name="s3", region_name=REGION_NAME, endpoint_url=S3_ENDPOINT_URL
+    ),
+) -> dict[str, str]:
+    tagging_response = s3_client.get_object_tagging(
+        Bucket=bucket_name,
+        Key=object_key,
+    )
+    return create_tagging_map_for_object(tagging_response.get("TagSet", []))
+
+
+def create_tagging_map_for_object(
+    object_tags: list[dict[str, str]],
+) -> dict[str, str]:
+    return {tag_dict["Key"]: tag_dict["Value"] for tag_dict in object_tags}
+
+
+def create_tag_set_for_object(
+    object_tags: dict[str, str],
+) -> list[dict[str, str]]:
+    return [{"Key": key, "Value": value} for key, value in object_tags.items()]
+
+
+def update_object_tags(
+    bucket_name: str,
+    object_key: str,
+    object_tags_to_update: dict[str, str],
+    s3_client: boto3.client = boto3.client(
+        service_name="s3", region_name=REGION_NAME, endpoint_url=S3_ENDPOINT_URL
+    ),
+) -> None:
+    tagging_to_update = create_tag_set_for_object(object_tags_to_update)
+    s3_client.put_object_tagging(
+        Bucket=bucket_name,
+        Key=object_key,
+        Tagging={"TagSet": tagging_to_update},
+    )
 
 
 def store_object_in_s3(
     bucket_name: str,
     object_key: str,
     body: str,
+    object_tags: Mapping[str, str] = dict(),
     object_metadata: Mapping[str, str] = dict(),
     overwrite_allowed: bool = False,
     s3_client: boto3.client = boto3.client(
@@ -80,11 +123,16 @@ def store_object_in_s3(
             # check if the object already exists
             if object_exists(bucket_name, object_key, s3_client=s3_client):
                 raise S3ObjectAlreadyExistsException(bucket_name, object_key)
+        encoded_object_tags = urllib.parse.urlencode(object_tags)
         logger.info(
-            f"Uploading object {object_key} to S3 bucket {bucket_name} with overwrite allowed value {overwrite_allowed}..."
+            f"Uploading object {object_key} with tags {encoded_object_tags} and metadata {object_metadata} to S3 bucket {bucket_name} with overwrite allowed value {overwrite_allowed}..."
         )
         s3_client.put_object(
-            Bucket=bucket_name, Key=object_key, Body=body, Metadata=object_metadata
+            Bucket=bucket_name,
+            Key=object_key,
+            Body=body,
+            Metadata=object_metadata,
+            Tagging=encoded_object_tags,
         )
     except botocore.exceptions.ClientError as e:
         # if there was some other error, raise an exception
@@ -118,9 +166,14 @@ def store_success_file(
 ) -> None:
     object_key = f"{prefix}/{success_marker_fn}"
     logger.info(f"Uploading success file {object_key} to S3 bucket {bucket_name}...")
-    body = dt_to_lexicographic_s3_prefix(datetime.utcnow())
+    body = dt_to_lexicographic_s3_prefix(datetime.now(timezone.utc))
     store_object_in_s3(
-        bucket_name, object_key, body, object_metadata, overwrite_allowed=True, s3_client=s3_client
+        bucket_name,
+        object_key,
+        body,
+        object_metadata=object_metadata,
+        overwrite_allowed=True,
+        s3_client=s3_client,
     )
 
 
@@ -131,7 +184,7 @@ def get_success_file(
     s3_client: boto3.client = boto3.client(
         service_name="s3", region_name=REGION_NAME, endpoint_url=S3_ENDPOINT_URL
     ),
-) -> tuple[str, dict[str, str]]:
+) -> tuple[str, dict[str, str], dict[str, str]]:
     object_key = f"{prefix}/{success_marker_fn}"
     logger.info(f"Downloading success file {object_key} from S3 bucket {bucket_name}...")
     return get_object(bucket_name, object_key, s3_client=s3_client)
