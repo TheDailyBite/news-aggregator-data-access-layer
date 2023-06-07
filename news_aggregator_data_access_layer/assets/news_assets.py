@@ -82,7 +82,10 @@ class CandidateArticles:
         self.aggregator_id_metadata_key = "aggregator_id"
 
     def load_articles(
-        self, tag_filter_key: str = "", tag_filter_value: str = "", **kwargs: Any
+        self,
+        tag_filter_key: Optional[str] = "",
+        tag_filter_value: Optional[str] = "",
+        **kwargs: Any,
     ) -> list[tuple[RawArticle, Mapping[str, str], Mapping[str, str]]]:
         """Load raw articles from the appropriate source and filter them based on tags, if necessary
 
