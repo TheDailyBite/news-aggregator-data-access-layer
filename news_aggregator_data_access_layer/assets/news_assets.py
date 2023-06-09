@@ -61,7 +61,8 @@ class RawArticle(BaseModel):
             article = NewsPlease.from_url(self.url)
             ext_res = tldextract.extract(self.url)
             self.provider_domain = ext_res.domain.lower()
-            if not article:
+            # NOTE - some articles return 200 but have no maintext so we skip them
+            if not article or not article.maintext:
                 logger.warning(
                     f"Could not process article with url {self.url} and provider domain {self.provider_domain}"
                 )

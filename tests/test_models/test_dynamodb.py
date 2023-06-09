@@ -4,7 +4,6 @@ from unittest import mock
 import pytest
 
 from news_aggregator_data_access_layer.constants import (
-    AGGREGATION_NOT_SOURCED_IDENTIFIER,
     AggregatorRunStatus,
     ArticleApprovalStatus,
     ResultRefTypes,
