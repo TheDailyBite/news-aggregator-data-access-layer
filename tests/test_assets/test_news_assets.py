@@ -88,6 +88,28 @@ def test_raw_article_process_data_with_provider_domain_no_article_processed_data
     assert raw_article.article_processed_data == ""
 
 
+def test_raw_article_get_text():
+    expected_text = "Some article text"
+    with mock.patch(
+        "news_aggregator_data_access_layer.assets.news_assets.RawArticle.process_article_data"
+    ) as mock_process_article_data:
+        raw_article = RawArticle(
+            article_id="article_id",
+            aggregator_id="aggregator_id",
+            dt_published=TEST_PUBLISHED_ISO_DT,
+            aggregation_index=0,
+            topic_id=TEST_TOPIC_ID,
+            topic="topic",
+            title="the article title",
+            url="https://www.inc.com/sania-khan/invalid-article.html",
+            article_data="article_data",
+            sorting="date",
+        )
+        raw_article.article_processed_data = json.dumps({"maintext": expected_text})
+        actual_text = raw_article.get_article_text()
+        assert expected_text == actual_text
+
+
 def test_raw_article_parse_raw():
     raw_article = RawArticle.parse_raw(
         json.dumps(

@@ -70,6 +70,11 @@ class RawArticle(BaseModel):
                 return
             self.article_processed_data = json.dumps(article.get_serializable_dict())
 
+    def get_article_text(self) -> str:
+        if not self.article_processed_data:
+            self.process_article_data()
+        return json.loads(self.article_processed_data).get("maintext")
+
 
 class CandidateArticles:
     def __init__(self, result_ref_type: ResultRefTypes, topic_id: str):
