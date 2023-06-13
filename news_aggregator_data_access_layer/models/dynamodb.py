@@ -237,6 +237,7 @@ class SourcedArticles(Model):
     # NOTE - this is the labeled category, not the requested one
     labeled_category = UnicodeAttribute(null=True)
     source_article_ids = UnicodeSetAttribute()
+    source_article_urls = UnicodeSetAttribute()
     providers = UnicodeSetAttribute()
     article_approval_status = UnicodeEnumAttribute(
         ArticleApprovalStatus,
