@@ -195,6 +195,20 @@ class SourcedArticlesGSI1(GlobalSecondaryIndex):  # type: ignore
     sourced_article_id = UnicodeAttribute(range_key=True)
 
 
+class SourcedArticlesLSI1(LocalSecondaryIndex):  # type: ignore
+    """
+    This class represents a local secondary index which uses the topic_id as the hash key and the
+    date_published as the range key. This is mainly used to query for articles by topic id and date published.
+    """
+
+    class Meta:
+        # All attributes are projected
+        projection = AllProjection()
+
+    topic_id = UnicodeAttribute(hash_key=True)
+    date_published = UnicodeAttribute(range_key=True)
+
+
 class SourcedArticles(Model):
     """
     A DynamoDB Sourced Articles model.
@@ -223,6 +237,7 @@ class SourcedArticles(Model):
     # NOTE - this is the labeled category, not the requested one
     labeled_category = UnicodeAttribute(null=True)
     source_article_ids = UnicodeSetAttribute()
+    source_article_urls = UnicodeSetAttribute()
     providers = UnicodeSetAttribute()
     article_approval_status = UnicodeEnumAttribute(
         ArticleApprovalStatus,
@@ -235,3 +250,4 @@ class SourcedArticles(Model):
     thumbs_down = NumberAttribute(default_for_new=0)
     sourcing_run_id = UnicodeAttribute()
     gsi_1 = SourcedArticlesGSI1()
+    lsi_1 = SourcedArticlesLSI1()

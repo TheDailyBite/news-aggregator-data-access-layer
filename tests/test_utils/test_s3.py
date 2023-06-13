@@ -16,6 +16,7 @@ from news_aggregator_data_access_layer.exceptions import (
 from news_aggregator_data_access_layer.utils.s3 import (
     create_tag_set_for_object,
     create_tagging_map_for_object,
+    dt_to_lexicographic_dash_s3_prefix,
     dt_to_lexicographic_date_s3_prefix,
     dt_to_lexicographic_s3_prefix,
     get_object,
@@ -548,6 +549,12 @@ def test_dt_to_lexicographic_s3_prefix():
     dt = datetime.datetime(2023, 4, 11, 21, 2, 39, 4166)
     expected_lexicographic_s3_prefix = "2023/04/11/21/02/39/004166"
     assert dt_to_lexicographic_s3_prefix(dt) == expected_lexicographic_s3_prefix
+
+
+def test_dt_to_lexicographic_dash_s3_prefix():
+    dt = datetime.datetime(2023, 4, 11, 21, 2, 39, 4166)
+    expected_lexicographic_dash_s3_prefix = "2023-04-11-21-02-39-004166"
+    assert dt_to_lexicographic_dash_s3_prefix(dt) == expected_lexicographic_dash_s3_prefix
 
 
 def test_lexicographic_s3_prefix_to_dt():

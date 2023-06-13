@@ -61,13 +61,19 @@ class RawArticle(BaseModel):
             article = NewsPlease.from_url(self.url)
             ext_res = tldextract.extract(self.url)
             self.provider_domain = ext_res.domain.lower()
-            if not article:
+            # NOTE - some articles return 200 but have no maintext so we skip them
+            if not article or not article.maintext:
                 logger.warning(
                     f"Could not process article with url {self.url} and provider domain {self.provider_domain}"
                 )
                 # TODO - emit metric with domain
                 return
             self.article_processed_data = json.dumps(article.get_serializable_dict())
+
+    def get_article_text(self) -> str:
+        if not self.article_processed_data:
+            self.process_article_data()
+        return json.loads(self.article_processed_data).get("maintext")
 
 
 class CandidateArticles:
