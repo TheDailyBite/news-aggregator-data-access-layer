@@ -595,7 +595,7 @@ def test_candidate_articles__store_articles_in_s3():
         assert set(actual_result[1]) == set(expected_result[1])
 
 
-def test_candidate_articles_mark_articles_sourced():
+def test_candidate_articles_update_articles_is_sourced_tag():
     candidate_articles = CandidateArticles(
         result_ref_type=ResultRefTypes.S3,
         topic_id=TEST_TOPIC_ID,
@@ -626,17 +626,18 @@ def test_candidate_articles_mark_articles_sourced():
     )
     raw_articles = [raw_article_1, raw_article_2]
     with mock.patch.object(
-        candidate_articles, "_mark_s3_articles_sourced"
-    ) as mock_mark_s3_articles_sourced:
+        candidate_articles, "_update_s3_articles_is_sourced_tag"
+    ) as mock_update_s3_articles_is_sourced_tag:
         kwargs = {
             "s3_client": "s3_client",
             "articles": raw_articles,
+            "updated_tag_value": ARTICLE_SOURCED_TAGS_FLAG,
         }
-        candidate_articles.mark_articles_sourced(**kwargs)
-        mock_mark_s3_articles_sourced.assert_called_once_with(**kwargs)
+        candidate_articles.update_articles_is_sourced_tag(**kwargs)
+        mock_update_s3_articles_is_sourced_tag.assert_called_once_with(**kwargs)
 
 
-def test_candidate_articles__mark_s3_articles_sourced():
+def test_candidate_articles__update_s3_articles_is_sourced_tag():
     candidate_articles = CandidateArticles(
         result_ref_type=ResultRefTypes.S3,
         topic_id=TEST_TOPIC_ID,
@@ -684,8 +685,9 @@ def test_candidate_articles__mark_s3_articles_sourced():
             kwargs = {
                 "s3_client": "s3_client",
                 "articles": raw_articles,
+                "updated_tag_value": ARTICLE_SOURCED_TAGS_FLAG,
             }
-            candidate_articles._mark_s3_articles_sourced(**kwargs)
+            candidate_articles._update_s3_articles_is_sourced_tag(**kwargs)
             calls = [
                 mock.call(
                     bucket_name=CANDIDATE_ARTICLES_S3_BUCKET,

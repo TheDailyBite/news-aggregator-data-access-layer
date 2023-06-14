@@ -204,21 +204,26 @@ class CandidateArticles:
             )
         return CANDIDATE_ARTICLES_S3_BUCKET, list(prefixes)
 
-    def mark_articles_sourced(self, **kwargs: Any) -> None:
+    def update_articles_is_sourced_tag(self, **kwargs: Any) -> None:
         if self.result_ref_type == ResultRefTypes.S3:
-            return self._mark_s3_articles_sourced(**kwargs)
+            return self._update_s3_articles_is_sourced_tag(**kwargs)
         else:
             raise NotImplementedError(
                 f"Result reference type {self.result_ref_type} not implemented"
             )
 
-    def _mark_s3_articles_sourced(self, **kwargs: Any) -> None:
+    def _update_s3_articles_is_sourced_tag(self, **kwargs: Any) -> None:
         s3_client = kwargs.get("s3_client")
         if not s3_client:
             raise ValueError("s3_client parameter cannot be null")
         articles: list[RawArticle] = kwargs["articles"]
         if not all(isinstance(article, RawArticle) for article in articles):
             raise ValueError("articles must be a list of RawArticle")
+        updated_tag_value = kwargs["updated_tag_value"]
+        if updated_tag_value not in [ARTICLE_SOURCED_TAGS_FLAG, ARTICLE_NOT_SOURCED_TAGS_FLAG]:
+            raise ValueError(
+                f"updated_tag_value must be one of {ARTICLE_SOURCED_TAGS_FLAG} or {ARTICLE_NOT_SOURCED_TAGS_FLAG}"
+            )
         for article in articles:
             object_key = self._get_raw_article_s3_object_key(article)
             existing_tags = get_object_tags(
@@ -227,11 +232,11 @@ class CandidateArticles:
                 s3_client=s3_client,
             )
             tags_to_update = {
-                self.is_sourced_article_tag_key: ARTICLE_SOURCED_TAGS_FLAG,
+                self.is_sourced_article_tag_key: updated_tag_value,
             }
             existing_tags.update(tags_to_update)
             logger.info(
-                f"Updating tags for {object_key} to {existing_tags} which will mark the article as sourced"
+                f"Updating tags for {object_key} to {existing_tags} which will update the is_sourced_article tag to {updated_tag_value}"
             )
             update_object_tags(
                 bucket_name=CANDIDATE_ARTICLES_S3_BUCKET,
