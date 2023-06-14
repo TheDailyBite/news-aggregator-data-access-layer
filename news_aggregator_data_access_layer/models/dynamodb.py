@@ -17,6 +17,7 @@ from pynamodb_attributes.unicode_enum import UnicodeEnumAttribute
 
 from news_aggregator_data_access_layer.config import DEPLOYMENT_STAGE, DYNAMODB_HOST, REGION_NAME
 from news_aggregator_data_access_layer.constants import (
+    AGGREGATOR_RUNS_TTL_EXPIRATION_DAYS,
     ALL_CATEGORIES_STR,
     AggregatorRunStatus,
     ArticleApprovalStatus,
@@ -79,6 +80,7 @@ class NewsTopics(Model):
     max_aggregator_results = NumberAttribute()
     daily_publishing_limit = NumberAttribute()
     dt_last_aggregated = UTCDateTimeAttribute(null=True)
+    last_publishing_date = UTCDateTimeAttribute(null=True)
     bing_aggregation_last_end_time = UTCDateTimeAttribute(null=True)
     # NOTE - add other aggregator attributes here
     version = VersionAttribute()
@@ -178,6 +180,9 @@ class AggregatorRuns(Model):
     # {"type": "s3", "bucket": "<s3_bucket>", "paths": "<comme-separated-prefixes>"}
     aggregated_articles_ref = MapAttribute(null=True)  # type: ignore
     aggregated_articles_count = NumberAttribute(default_for_new=0)
+    expiration = TTLAttribute(
+        default_for_new=datetime.timedelta(days=AGGREGATOR_RUNS_TTL_EXPIRATION_DAYS)
+    )
 
 
 class SourcedArticlesGSI1(GlobalSecondaryIndex):  # type: ignore

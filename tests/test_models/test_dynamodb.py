@@ -1,9 +1,10 @@
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from unittest import mock
 
 import pytest
 
 from news_aggregator_data_access_layer.constants import (
+    AGGREGATOR_RUNS_TTL_EXPIRATION_DAYS,
     AggregatorRunStatus,
     ArticleApprovalStatus,
     ResultRefTypes,
@@ -31,6 +32,7 @@ def test_news_topics_init():
         max_aggregator_results=10,
         daily_publishing_limit=5,
         dt_last_aggregated=TEST_DT_END,
+        last_publishing_date=TEST_DT_END,
         bing_aggregation_last_end_time=TEST_DT_END,
     )
     assert news_topics.topic_id == "topic_id"
@@ -41,6 +43,7 @@ def test_news_topics_init():
     assert news_topics.max_aggregator_results == 10
     assert news_topics.daily_publishing_limit == 5
     assert news_topics.dt_last_aggregated == TEST_DT_END
+    assert news_topics.last_publishing_date == TEST_DT_END
     assert news_topics.bing_aggregation_last_end_time == TEST_DT_END
 
 
@@ -91,6 +94,9 @@ def test_aggregator_runs_init():
     assert aggregator_run.aggregated_articles_ref.as_dict() == refs
     assert aggregator_run.aggregated_articles_count == 10
     assert aggregator_run.run_status == AggregatorRunStatus.IN_PROGRESS
+    assert aggregator_run.expiration - datetime.now(timezone.utc) <= timedelta(
+        days=AGGREGATOR_RUNS_TTL_EXPIRATION_DAYS
+    )
 
 
 def test_sourced_articles_init():
