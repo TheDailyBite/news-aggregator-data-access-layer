@@ -12,6 +12,7 @@ from news_aggregator_data_access_layer.constants import (
 from news_aggregator_data_access_layer.models.dynamodb import (
     AggregatorRuns,
     NewsTopics,
+    PublishedArticles,
     SourcedArticles,
     TrustedNewsProviders,
     UserTopicSubscriptions,
@@ -135,3 +136,14 @@ def test_sourced_articles_init():
     assert sourced_article.thumbs_down == 0
     assert sourced_article.article_approval_status == ArticleApprovalStatus.PENDING
     assert sourced_article.sourcing_run_id == "sourcing run id"
+
+
+def test_published_articles_init():
+    published_articles = PublishedArticles(
+        topic_id="topic_id",
+        publishing_date=TEST_DATE_STR,
+        published_article_count=10,
+    )
+    assert published_articles.topic_id == "topic_id"
+    assert published_articles.publishing_date == TEST_DATE_STR
+    assert published_articles.published_article_count == 10

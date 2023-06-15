@@ -44,6 +44,9 @@ def create_tables():
     if not SourcedArticles.exists():
         logger.info("Creating SourcedArticles table...")
         SourcedArticles.create_table(wait=True)
+    if not PublishedArticles.exists():
+        logger.info("Creating PublishedArticles table...")
+        PublishedArticles.create_table(wait=True)
 
 
 def get_uuid4_attribute() -> str:
@@ -256,3 +259,26 @@ class SourcedArticles(Model):
     sourcing_run_id = UnicodeAttribute()
     gsi_1 = SourcedArticlesGSI1()
     lsi_1 = SourcedArticlesLSI1()
+
+
+class PublishedArticles(Model):
+    """
+    A DynamoDB Published Articles model.
+    """
+
+    class Meta:
+        table_name = f"published-articles-{DEPLOYMENT_STAGE}"
+        # Specifies the region
+        region = REGION_NAME
+        # Optional: Specify the hostname only if it needs to be changed from the default AWS setting
+        host = DYNAMODB_HOST
+        # Specifies the write capacity - unused for on-demand tables
+        write_capacity_units = 1
+        # Specifies the read capacity - unused for on-demand tables
+        read_capacity_units = 1
+        billing_mode = "PAY_PER_REQUEST"
+
+    topic_id = UnicodeAttribute(hash_key=True)
+    publishing_date = UnicodeAttribute(range_key=True)
+    published_article_count = NumberAttribute(default_for_new=0)
+    version = VersionAttribute()

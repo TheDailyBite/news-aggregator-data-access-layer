@@ -10,6 +10,7 @@ import botocore
 
 from news_aggregator_data_access_layer.config import REGION_NAME, S3_ENDPOINT_URL
 from news_aggregator_data_access_layer.constants import (
+    DATE_LEXICOGRAPHIC_DASH_STR_FORMAT,
     DATE_LEXICOGRAPHIC_STR_FORMAT,
     DT_LEXICOGRAPHIC_DASH_STR_FORMAT,
     DT_LEXICOGRAPHIC_STR_FORMAT,
@@ -158,6 +159,10 @@ def lexicographic_s3_prefix_to_dt(prefix: str) -> datetime:
 
 def dt_to_lexicographic_date_s3_prefix(dt: datetime) -> str:
     return dt.strftime(DATE_LEXICOGRAPHIC_STR_FORMAT)
+
+
+def dt_to_lexicographic_date_dash_s3_prefix(dt: datetime) -> str:
+    return dt.strftime(DATE_LEXICOGRAPHIC_DASH_STR_FORMAT)
 
 
 def store_success_file(
