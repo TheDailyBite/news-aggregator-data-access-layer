@@ -32,7 +32,17 @@ SUPPORTED_AGGREGATION_CATEGORIES = {
 }
 
 
-class ResultRefTypes(Enum):
+class NewsAggregatorsEnum(str, Enum):
+    """
+    Enum for news aggregators
+    """
+
+    BING_NEWS = "bingnews"
+    NEWS_API_ORG = "newsapi.org"
+    THE_NEWS_API_COM = "thenewsapi.com"
+
+
+class ResultRefTypes(str, Enum):
     """
     Enum for result reference types
     """
@@ -40,7 +50,7 @@ class ResultRefTypes(Enum):
     S3 = "s3"
 
 
-class AggregatorRunStatus(Enum):
+class AggregatorRunStatus(str, Enum):
     """
     Enum for aggregator run status
     """
@@ -50,7 +60,7 @@ class AggregatorRunStatus(Enum):
     IN_PROGRESS = "InProgress"
 
 
-class SummarizationLength(Enum):
+class SummarizationLength(str, Enum):
     """Enum for summarization length for sourced articles."""
 
     SHORT = "Short"
@@ -58,7 +68,7 @@ class SummarizationLength(Enum):
     FULL = "Full"
 
 
-class ArticleApprovalStatus(Enum):
+class ArticleApprovalStatus(str, Enum):
     """Enum for article approval status for sourced articles."""
 
     PENDING = "Pending"
