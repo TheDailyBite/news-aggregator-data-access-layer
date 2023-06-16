@@ -36,6 +36,7 @@ def test_news_topics_init():
         dt_last_aggregated=TEST_DT_END,
         last_publishing_date=TEST_DT_END,
         bing_aggregation_last_end_time=TEST_DT_END,
+        news_api_org_aggregation_last_end_time=TEST_DT_END,
     )
     assert news_topics.topic_id == "topic_id"
     assert news_topics.topic == "topic"
@@ -48,6 +49,7 @@ def test_news_topics_init():
     assert news_topics.dt_last_aggregated == TEST_DT_END
     assert news_topics.last_publishing_date == TEST_DT_END
     assert news_topics.bing_aggregation_last_end_time == TEST_DT_END
+    assert news_topics.news_api_org_aggregation_last_end_time == TEST_DT_END
 
 
 def test_user_topic_subscriptions_init():
