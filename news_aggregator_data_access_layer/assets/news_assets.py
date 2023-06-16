@@ -4,6 +4,7 @@ import copy
 import json
 from collections.abc import Mapping
 from datetime import datetime
+from enum import Enum
 
 import tldextract
 from newsplease import NewsPlease
@@ -48,8 +49,12 @@ class RawArticle(BaseModel):
     category: Optional[str] = ""
     title: str
     url: str
+    author: Optional[str] = ""
+    article_full_text: Optional[str] = ""
+    article_text_snippet: Optional[str] = ""
+    # this is the json string of the Article representation of the aggregator used
     article_data: str
-    # relevance or date
+    # one of SUPPORTED_SORTING strings
     sorting: str
     provider_domain: Optional[str] = ""
     article_processed_data: Optional[str] = ""
@@ -58,9 +63,11 @@ class RawArticle(BaseModel):
         if self.article_processed_data:
             return self.article_processed_data
         else:
+            # TODO - try newspaper3k
             article = NewsPlease.from_url(self.url)
-            ext_res = tldextract.extract(self.url)
-            self.provider_domain = ext_res.domain.lower()
+            if not self.provider_domain:
+                ext_res = tldextract.extract(self.url)
+                self.provider_domain = ext_res.domain.lower()
             # NOTE - some articles return 200 but have no maintext so we skip them
             if not article or not article.maintext:
                 logger.warning(
@@ -68,12 +75,14 @@ class RawArticle(BaseModel):
                 )
                 # TODO - emit metric with domain
                 return
-            self.article_processed_data = json.dumps(article.get_serializable_dict())
+            self.article_full_text = article.maintext
+            article_processed_data_dict = article.get_serializable_dict().pop("maintext")
+            self.article_processed_data = json.dumps(article_processed_data_dict)
 
     def get_article_text(self) -> str:
-        if not self.article_processed_data:
+        if not self.article_full_text:
             self.process_article_data()
-        return json.loads(self.article_processed_data).get("maintext")
+        return self.article_full_text
 
 
 class CandidateArticles:
@@ -110,6 +119,7 @@ class CandidateArticles:
         if self.result_ref_type == ResultRefTypes.S3:
             unsorted_candidate_articles = self._load_articles_from_s3(**kwargs)
             # TODO - implement sorting
+            unique_urls = set()
             for a in unsorted_candidate_articles:
                 raw_article = a[1]
                 object_metadata = a[2]
@@ -117,10 +127,17 @@ class CandidateArticles:
                 # filter to only exclude non-matching articles
                 if tag_filter_key and tag_filter_value:
                     if object_tags[tag_filter_key] != tag_filter_value:
-                        logger.debug(
+                        logger.warning(
                             f"Skipping article {raw_article.article_id} because it does not match the tag filter key {tag_filter_key} and value {tag_filter_value}"
                         )
                         continue
+                # NOTE - filter to only include unique articles which are determined via URL currently
+                if raw_article.url in unique_urls:
+                    logger.warning(
+                        f"Skipping article {raw_article.article_id} because it is a duplicate of another article with the same url"
+                    )
+                    continue
+                unique_urls.add(raw_article.url)
                 self.candidate_articles.append((raw_article, object_metadata, object_tags))
             return self.candidate_articles
         else:

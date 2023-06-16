@@ -79,12 +79,14 @@ class NewsTopics(Model):
     topic = UnicodeAttribute()
     category = UnicodeAttribute()
     is_active = BooleanAttribute()
+    is_published = BooleanAttribute()
     date_created = UTCDateTimeAttribute()
     max_aggregator_results = NumberAttribute()
     daily_publishing_limit = NumberAttribute()
     dt_last_aggregated = UTCDateTimeAttribute(null=True)
     last_publishing_date = UTCDateTimeAttribute(null=True)
     bing_aggregation_last_end_time = UTCDateTimeAttribute(null=True)
+    news_api_org_aggregation_last_end_time = UTCDateTimeAttribute(null=True)
     # NOTE - add other aggregator attributes here
     version = VersionAttribute()
 
