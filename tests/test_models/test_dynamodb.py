@@ -29,6 +29,7 @@ def test_news_topics_init():
         topic="topic",
         category="category",
         is_active=True,
+        is_published=False,
         date_created=TEST_DT,
         max_aggregator_results=10,
         daily_publishing_limit=5,
@@ -40,6 +41,7 @@ def test_news_topics_init():
     assert news_topics.topic == "topic"
     assert news_topics.category == "category"
     assert news_topics.is_active == True
+    assert news_topics.is_published == False
     assert news_topics.date_created == TEST_DT
     assert news_topics.max_aggregator_results == 10
     assert news_topics.daily_publishing_limit == 5

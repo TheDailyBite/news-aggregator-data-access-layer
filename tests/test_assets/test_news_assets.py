@@ -105,7 +105,9 @@ def test_raw_article_get_text():
             article_data="article_data",
             sorting="date",
         )
-        raw_article.article_processed_data = json.dumps({"maintext": expected_text})
+        actual_text = raw_article.get_article_text()
+        mock_process_article_data.assert_called_once()
+        raw_article.article_full_text = expected_text
         actual_text = raw_article.get_article_text()
         assert expected_text == actual_text
 
@@ -283,6 +285,67 @@ def test_candidate_articles_load_articles():
         expected_result = [
             (raw_article_1, raw_article_1_metadata, raw_article_1_tags),
             (raw_article_2, raw_article_2_metadata, raw_article_2_tags),
+        ]
+        actual_result = candidate_articles.load_articles(**kwargs)
+        mock_load_articles_from_s3.assert_called_once_with(**kwargs)
+        assert actual_result == expected_result
+
+
+def test_candidate_articles_load_articles_duplicate_urls():
+    candidate_articles = CandidateArticles(
+        result_ref_type=ResultRefTypes.S3,
+        topic_id=TEST_TOPIC_ID,
+    )
+    raw_article_1_key = "2023/04/11/21/02/39/004166/article_id.json"
+    raw_article_1 = RawArticle(
+        article_id="article_id",
+        aggregator_id="aggregator_id",
+        dt_published=TEST_PUBLISHED_ISO_DT,
+        topic_id=TEST_TOPIC_ID,
+        aggregation_index=0,
+        topic="topic",
+        title="the article title",
+        url="same_url",
+        article_data="article_data",
+        sorting="date",
+    )
+    raw_article_1_metadata = {
+        candidate_articles.aggregation_run_id_metadata_key: TEST_AGGREGATOR_RUN_ID,
+        candidate_articles.aggregator_id_metadata_key: "aggregator_id",
+    }
+    raw_article_1_tags = {
+        candidate_articles.is_sourced_article_tag_key: "False",
+    }
+    raw_article_2_key = "2023/04/11/21/02/39/004166/article_id 2.json"
+    raw_article_2 = RawArticle(
+        article_id="article_id 2",
+        aggregator_id="aggregator_id",
+        dt_published=TEST_PUBLISHED_ISO_DT,
+        topic_id=TEST_TOPIC_ID,
+        aggregation_index=1,
+        topic="topic 2",
+        title="the article title 2",
+        url="same_url",
+        article_data="article_data 2",
+        sorting="date",
+    )
+    raw_article_2_metadata = {
+        candidate_articles.aggregation_run_id_metadata_key: TEST_AGGREGATOR_RUN_ID,
+        candidate_articles.aggregator_id_metadata_key: "aggregator_id",
+    }
+    raw_article_2_tags = {
+        candidate_articles.is_sourced_article_tag_key: "False",
+    }
+    raw_articles = [
+        (raw_article_1_key, raw_article_1, raw_article_1_metadata, raw_article_1_tags),
+        (raw_article_2_key, raw_article_2, raw_article_2_metadata, raw_article_2_tags),
+    ]
+    with mock.patch.object(
+        candidate_articles, "_load_articles_from_s3", return_value=raw_articles
+    ) as mock_load_articles_from_s3:
+        kwargs = {"some_key": "some_value"}
+        expected_result = [
+            (raw_article_1, raw_article_1_metadata, raw_article_1_tags),
         ]
         actual_result = candidate_articles.load_articles(**kwargs)
         mock_load_articles_from_s3.assert_called_once_with(**kwargs)

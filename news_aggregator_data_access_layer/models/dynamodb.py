@@ -79,6 +79,7 @@ class NewsTopics(Model):
     topic = UnicodeAttribute()
     category = UnicodeAttribute()
     is_active = BooleanAttribute()
+    is_published = BooleanAttribute()
     date_created = UTCDateTimeAttribute()
     max_aggregator_results = NumberAttribute()
     daily_publishing_limit = NumberAttribute()
