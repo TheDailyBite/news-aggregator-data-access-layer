@@ -34,12 +34,11 @@ SUPPORTED_AGGREGATION_CATEGORIES = {
 
 class NewsAggregatorsEnum(str, Enum):
     """
-    Enum for news aggregators
+    Enum for news aggregators (only add actually implemented ones)
     """
 
     BING_NEWS = "bingnews"
     NEWS_API_ORG = "newsapi.org"
-    THE_NEWS_API_COM = "thenewsapi.com"
 
 
 class ResultRefTypes(str, Enum):
