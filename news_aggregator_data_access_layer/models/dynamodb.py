@@ -285,6 +285,7 @@ class SourcedArticles(Model):
     thumbs_up = NumberAttribute(default_for_new=0)
     thumbs_down = NumberAttribute(default_for_new=0)
     sourcing_run_id = UnicodeAttribute()
+    article_processing_cost = NumberAttribute()
     gsi_1 = SourcedArticlesGSI1()
     lsi_1 = SourcedArticlesLSI1()
 

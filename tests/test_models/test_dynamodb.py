@@ -132,6 +132,7 @@ def test_sourced_articles_init():
         medium_summary_ref="medium_summary_ref",
         full_summary_ref="full_summary_ref",
         sourcing_run_id="sourcing run id",
+        article_processing_cost=0.1,
     )
     assert sourced_article.topic_id == "topic_id"
     assert sourced_article.sourced_article_id == "sourced_article_id"
@@ -151,6 +152,7 @@ def test_sourced_articles_init():
     assert sourced_article.thumbs_down == 0
     assert sourced_article.article_approval_status == ArticleApprovalStatus.PENDING
     assert sourced_article.sourcing_run_id == "sourcing run id"
+    assert sourced_article.article_processing_cost == 0.1
 
 
 def test_published_articles_init():
