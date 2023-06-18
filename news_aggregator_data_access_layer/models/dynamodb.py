@@ -21,6 +21,7 @@ from news_aggregator_data_access_layer.constants import (
     ALL_CATEGORIES_STR,
     AggregatorRunStatus,
     ArticleApprovalStatus,
+    NewsAggregatorsEnum,
     ResultRefTypes,
 )
 from news_aggregator_data_access_layer.utils.telemetry import setup_logger
@@ -29,6 +30,9 @@ logger = setup_logger(__name__)
 
 
 def create_tables():
+    if not NewsAggregators.exists():
+        logger.info("Creating NewsAggregators table...")
+        NewsAggregators.create_table(wait=True)
     if not NewsTopics.exists():
         logger.info("Creating NewsTopics table...")
         NewsTopics.create_table(wait=True)
@@ -57,6 +61,27 @@ def get_current_dt_utc_attribute() -> datetime.datetime:
     return datetime.datetime.now(datetime.timezone.utc)
 
 
+class NewsAggregators(Model):
+    """
+    A DynamoDB NewsAggregators model.
+    """
+
+    class Meta:
+        table_name = f"news-aggregators-{DEPLOYMENT_STAGE}"
+        # Specifies the region
+        region = REGION_NAME
+        # Optional: Specify the hostname only if it needs to be changed from the default AWS setting
+        host = DYNAMODB_HOST
+        # Specifies the write capacity - unused for on-demand tables
+        write_capacity_units = 1
+        # Specifies the read capacity - unused for on-demand tables
+        read_capacity_units = 1
+        billing_mode = "PAY_PER_REQUEST"
+
+    aggregator_id = UnicodeEnumAttribute(NewsAggregatorsEnum, hash_key=True)
+    is_active = BooleanAttribute()
+
+
 class NewsTopics(Model):
     """
     A DynamoDB News Topics model.
@@ -78,7 +103,9 @@ class NewsTopics(Model):
     # NOTE - maybe a GSI can be created for topic + category in the future to avoid a scan
     topic = UnicodeAttribute()
     category = UnicodeAttribute()
+    # this controls if aggregation and sourcing occur for this topic
     is_active = BooleanAttribute()
+    # this controls if the topic is shown to users
     is_published = BooleanAttribute()
     date_created = UTCDateTimeAttribute()
     max_aggregator_results = NumberAttribute()
@@ -171,7 +198,6 @@ class AggregatorRuns(Model):
     # this will be a date when the aggregator started, without time
     aggregation_start_date = UnicodeAttribute(hash_key=True)
     aggregation_run_id = UnicodeAttribute(range_key=True)
-    # this will be a constant in each aggregator (e.g. "bing")
     aggregator_id = UnicodeAttribute()
     topic_id = UnicodeAttribute()
     aggregation_data_start_time = UTCDateTimeAttribute()
@@ -259,6 +285,7 @@ class SourcedArticles(Model):
     thumbs_up = NumberAttribute(default_for_new=0)
     thumbs_down = NumberAttribute(default_for_new=0)
     sourcing_run_id = UnicodeAttribute()
+    article_processing_cost = NumberAttribute()
     gsi_1 = SourcedArticlesGSI1()
     lsi_1 = SourcedArticlesLSI1()
 

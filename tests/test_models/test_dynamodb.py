@@ -7,10 +7,12 @@ from news_aggregator_data_access_layer.constants import (
     AGGREGATOR_RUNS_TTL_EXPIRATION_DAYS,
     AggregatorRunStatus,
     ArticleApprovalStatus,
+    NewsAggregatorsEnum,
     ResultRefTypes,
 )
 from news_aggregator_data_access_layer.models.dynamodb import (
     AggregatorRuns,
+    NewsAggregators,
     NewsTopics,
     PublishedArticles,
     SourcedArticles,
@@ -21,6 +23,15 @@ from news_aggregator_data_access_layer.models.dynamodb import (
 TEST_DT = datetime(2023, 4, 11, 21, 2, 39, 4166)
 TEST_DT_END = datetime(2023, 4, 11, 22, 2, 49, 4166)
 TEST_DATE_STR = "2022/04/11"
+
+
+def test_aggregators_init():
+    aggregator = NewsAggregators(
+        aggregator_id=NewsAggregatorsEnum.BING_NEWS,
+        is_active=True,
+    )
+    assert aggregator.aggregator_id == NewsAggregatorsEnum.BING_NEWS
+    assert aggregator.is_active == True
 
 
 def test_news_topics_init():
@@ -79,7 +90,7 @@ def test_aggregator_runs_init():
     aggregator_run = AggregatorRuns(
         aggregation_start_date=TEST_DATE_STR,
         aggregation_run_id="aggregation_run_id",
-        aggregator_id="aggregator_id",
+        aggregator_id=NewsAggregatorsEnum.BING_NEWS.value,
         topic_id="topic_id",
         aggregation_data_start_time=TEST_DT,
         aggregation_data_end_time=TEST_DT_END,
@@ -90,7 +101,7 @@ def test_aggregator_runs_init():
     )
     assert aggregator_run.aggregation_start_date == TEST_DATE_STR
     assert aggregator_run.aggregation_run_id == "aggregation_run_id"
-    assert aggregator_run.aggregator_id == "aggregator_id"
+    assert aggregator_run.aggregator_id == NewsAggregatorsEnum.BING_NEWS
     assert aggregator_run.topic_id == "topic_id"
     assert aggregator_run.aggregation_data_start_time == TEST_DT
     assert aggregator_run.aggregation_data_end_time == TEST_DT_END
@@ -121,6 +132,7 @@ def test_sourced_articles_init():
         medium_summary_ref="medium_summary_ref",
         full_summary_ref="full_summary_ref",
         sourcing_run_id="sourcing run id",
+        article_processing_cost=0.1,
     )
     assert sourced_article.topic_id == "topic_id"
     assert sourced_article.sourced_article_id == "sourced_article_id"
@@ -140,6 +152,7 @@ def test_sourced_articles_init():
     assert sourced_article.thumbs_down == 0
     assert sourced_article.article_approval_status == ArticleApprovalStatus.PENDING
     assert sourced_article.sourcing_run_id == "sourcing run id"
+    assert sourced_article.article_processing_cost == 0.1
 
 
 def test_published_articles_init():
