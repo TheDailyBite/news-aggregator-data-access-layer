@@ -198,7 +198,7 @@ class AggregatorRuns(Model):
     # this will be a date when the aggregator started, without time
     aggregation_start_date = UnicodeAttribute(hash_key=True)
     aggregation_run_id = UnicodeAttribute(range_key=True)
-    aggregator_id = UnicodeEnumAttribute(NewsAggregatorsEnum)
+    aggregator_id = UnicodeAttribute()
     topic_id = UnicodeAttribute()
     aggregation_data_start_time = UTCDateTimeAttribute()
     aggregation_data_end_time = UTCDateTimeAttribute()

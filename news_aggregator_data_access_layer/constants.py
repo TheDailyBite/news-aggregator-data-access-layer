@@ -40,6 +40,16 @@ class NewsAggregatorsEnum(str, Enum):
     BING_NEWS = "bingnews"
     NEWS_API_ORG = "newsapi.org"
 
+    @classmethod
+    def get_member_by_value(cls, value):
+        """
+        Get enum member by value
+        """
+        for member in cls:
+            if member.value == value:
+                return member
+        raise ValueError(f"Invalid value {value} for enum {cls}")
+
 
 class ResultRefTypes(str, Enum):
     """
