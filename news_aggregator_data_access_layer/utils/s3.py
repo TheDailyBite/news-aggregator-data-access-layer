@@ -232,3 +232,34 @@ def success_file_exists_at_prefix(
 ) -> bool:
     object_key = f"{prefix}/{success_marker_fn}"
     return object_exists(bucket_name, object_key, s3_client=s3_client)
+
+
+def create_presigned_url(
+    bucket_name: str,
+    object_key: str,
+    expiration_secs: int,
+    s3_client: boto3.client = boto3.client(
+        service_name="s3", region_name=REGION_NAME, endpoint_url=S3_ENDPOINT_URL
+    ),
+) -> str:
+    """Generate a presigned URL to share an S3 object
+
+    :param bucket_name: string
+    :param object_key: string
+    :param expiration_secs: Time in seconds for the presigned URL to remain valid
+    :param s3_client: boto3.client
+    :return: Presigned URL as string.
+    """
+    try:
+        response = s3_client.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": bucket_name, "Key": object_key},
+            ExpiresIn=expiration_secs,
+        )
+        return response
+    except botocore.exceptions.ClientError as e:
+        logger.error(
+            f"Error while generating presigned url for object {object_key}.  Details: {e}",
+            exc_info=True,
+        )
+        raise
