@@ -14,6 +14,7 @@ from news_aggregator_data_access_layer.exceptions import (
     S3SuccessFileDoesNotExistException,
 )
 from news_aggregator_data_access_layer.utils.s3 import (
+    create_presigned_url,
     create_tag_set_for_object,
     create_tagging_map_for_object,
     dt_to_lexicographic_dash_s3_prefix,
@@ -544,6 +545,32 @@ def test_success_file_not_exists_at_prefix():
         bucket_name, prefix, success_marker_fn, s3_client=s3
     )
     assert actual_result == expected_result
+
+
+@mock_s3
+def test_create_presigned_url():
+    # set the bucket name, prefix, and file extension
+    bucket_name = TEST_BUCKET_NAME
+    key = "my-key.csv"
+    test_metadata_csv = {"some-key": "some-value"}
+    test_tags = {"some-tag-key": "some-tag-value"}
+    expiration_secs = 60
+
+    # create the S3 bucket and upload some test objects
+    s3 = boto3.client("s3")
+    s3.create_bucket(Bucket=bucket_name)
+    store_object_in_s3(
+        bucket_name,
+        key,
+        body="file1body",
+        object_tags=test_tags,
+        object_metadata=test_metadata_csv,
+        s3_client=s3,
+    )
+
+    # test reading objects with the specified prefix and file extension
+    presigned_url = create_presigned_url(bucket_name, key, expiration_secs, s3_client=s3)
+    assert f"https://{bucket_name}.s3.amazonaws.com/{key}?AWSAccessKeyId=" in presigned_url
 
 
 def test_dt_to_lexicographic_s3_prefix():

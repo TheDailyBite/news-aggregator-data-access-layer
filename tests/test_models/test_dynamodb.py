@@ -125,9 +125,9 @@ def test_sourced_articles_init():
         title="title",
         topic="topic",
         labeled_category="labeled_category",
-        source_article_ids={"source_article_ids"},
-        source_article_urls={"source_article_urls"},
-        providers={"cnn", "fox"},
+        source_article_ids=["source_article_ids"],
+        source_article_urls=["source_article_urls"],
+        providers=["cnn", "fox"],
         short_summary_ref="short_summary_ref",
         medium_summary_ref="medium_summary_ref",
         full_summary_ref="full_summary_ref",
@@ -142,9 +142,9 @@ def test_sourced_articles_init():
     assert sourced_article.title == "title"
     assert sourced_article.topic == "topic"
     assert sourced_article.labeled_category == "labeled_category"
-    assert sourced_article.source_article_ids == {"source_article_ids"}
-    assert sourced_article.source_article_urls == {"source_article_urls"}
-    assert sourced_article.providers == {"cnn", "fox"}
+    assert sourced_article.source_article_ids == ["source_article_ids"]
+    assert sourced_article.source_article_urls == ["source_article_urls"]
+    assert sourced_article.providers == ["cnn", "fox"]
     assert sourced_article.short_summary_ref == "short_summary_ref"
     assert sourced_article.medium_summary_ref == "medium_summary_ref"
     assert sourced_article.full_summary_ref == "full_summary_ref"
