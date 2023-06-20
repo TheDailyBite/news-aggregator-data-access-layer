@@ -168,9 +168,9 @@ class CandidateArticles:
         ]
 
     def _get_raw_candidates_s3_object_prefix(self, article_published_date: str) -> str:
-        return f"raw_candidate_articles/{article_published_date}/{self.topic_id}"
+        return f"raw_candidate_articles/{self.topic_id}/{article_published_date}"
 
-    # <bucket>/raw_candidate_articles/<article_published_date_str>/<topic_id>/<article_id>.json
+    # <bucket>/raw_candidate_articles/<topic_id>/<article_published_date_str>/<article_id>.json
     def _get_raw_article_s3_object_key(self, article: RawArticle) -> str:
         date_published = datetime.fromisoformat(article.dt_published)
         article_published_date = dt_to_lexicographic_date_s3_prefix(date_published)

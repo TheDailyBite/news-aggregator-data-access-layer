@@ -11,6 +11,5 @@ CANDIDATE_ARTICLES_S3_BUCKET = os.environ.get(
 SOURCED_ARTICLES_S3_BUCKET = os.environ.get(
     "SOURCED_ARTICLES_S3_BUCKET", f"news-aggregator-sourced-articles-{DEPLOYMENT_STAGE}"
 )
-SELF_USER_ID = "___bamchip___"
 DEFAULT_LOGGER_NAME = "news_aggregator_data_access_layer"
 S3_ENDPOINT_URL = os.environ.get("S3_ENDPOINT_URL", f"https://s3.{REGION_NAME}.amazonaws.com")

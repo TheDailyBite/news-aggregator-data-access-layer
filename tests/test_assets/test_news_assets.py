@@ -214,7 +214,7 @@ def test_candidate_articles__get_raw_candidates_s3_object_prefix():
         result_ref_type=ResultRefTypes.S3,
         topic_id=TEST_TOPIC_ID,
     )
-    expected_object_key = f"raw_candidate_articles/{TEST_PUBLISHED_DATE}/{TEST_TOPIC_ID}/{raw_article.article_id}.json"
+    expected_object_key = f"raw_candidate_articles/{TEST_TOPIC_ID}/{TEST_PUBLISHED_DATE}/{raw_article.article_id}.json"
     actual_object_key = candidate_articles._get_raw_article_s3_object_key(raw_article)
     assert actual_object_key == expected_object_key
 
@@ -224,7 +224,7 @@ def test_candidate_articles__get_raw_article_s3_object_key():
         result_ref_type=ResultRefTypes.S3,
         topic_id=TEST_TOPIC_ID,
     )
-    expected_prefix = f"raw_candidate_articles/{TEST_PUBLISHED_DATE}/{TEST_TOPIC_ID}"
+    expected_prefix = f"raw_candidate_articles/{TEST_TOPIC_ID}/{TEST_PUBLISHED_DATE}"
     actual_prefix = candidate_articles._get_raw_candidates_s3_object_prefix(TEST_PUBLISHED_DATE)
     assert actual_prefix == expected_prefix
 
