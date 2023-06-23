@@ -51,6 +51,9 @@ def create_tables():
     if not PublishedArticles.exists():
         logger.info("Creating PublishedArticles table...")
         PublishedArticles.create_table(wait=True)
+    if not PreviewUsers.exists():
+        logger.info("Creating PreviewUsers table...")
+        PreviewUsers.create_table(wait=True)
 
 
 def get_uuid4_attribute() -> str:
@@ -154,6 +157,29 @@ class UserTopicSubscriptions(Model):
     topic_id = UnicodeAttribute(range_key=True)
     date_subscribed = UTCDateTimeAttribute()
     gsi_1 = UserTopicSubscriptionsGSI1()
+
+
+class PreviewUsers(Model):
+    """
+    A DynamoDB Preview Users model.
+    NOTE - This is a temporary table to allow users to preview the service before it is released.
+    I manually crete the users in the AWS console and then will delete the table when the service is release and has auth built in.
+    """
+
+    class Meta:
+        table_name = f"preview-users-{DEPLOYMENT_STAGE}"
+        # Specifies the region
+        region = REGION_NAME
+        # Optional: Specify the hostname only if it needs to be changed from the default AWS setting
+        host = DYNAMODB_HOST
+        # Specifies the write capacity - unused for on-demand tables
+        write_capacity_units = 1
+        # Specifies the read capacity - unused for on-demand tables
+        read_capacity_units = 1
+        billing_mode = "PAY_PER_REQUEST"
+
+    user_id = UnicodeAttribute(hash_key=True)
+    name = UnicodeAttribute()
 
 
 class TrustedNewsProviders(Model):

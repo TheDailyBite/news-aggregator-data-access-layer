@@ -14,6 +14,7 @@ from news_aggregator_data_access_layer.models.dynamodb import (
     AggregatorRuns,
     NewsAggregators,
     NewsTopics,
+    PreviewUsers,
     PublishedArticles,
     SourcedArticles,
     TrustedNewsProviders,
@@ -164,3 +165,9 @@ def test_published_articles_init():
     assert published_articles.topic_id == "topic_id"
     assert published_articles.publishing_date == TEST_DATE_STR
     assert published_articles.published_article_count == 10
+
+
+def test_preview_users_init():
+    preview_users = PreviewUsers(user_id="user_id", name="Peter Jackson")
+    assert preview_users.user_id == "user_id"
+    assert preview_users.name == "Peter Jackson"
