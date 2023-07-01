@@ -35,7 +35,7 @@ python = "^3.9"
 pynamodb = "^5.4.1"
 pynamodb-attributes = "^0.4.0"
 boto3 = "^1.26.77"
-pydantic = "^1.10.7"
+pydantic = "^2.0"
 news-please = "^1.5.33"
 
 
