@@ -24,6 +24,7 @@ from news_aggregator_data_access_layer.utils.s3 import (
     get_object,
     get_object_tags,
     get_success_file,
+    lexicographic_date_s3_prefix_to_dt,
     lexicographic_s3_prefix_to_dt,
     read_objects_from_prefix_with_extension,
     store_object_in_s3,
@@ -601,3 +602,9 @@ def test_dt_to_lexicographic_date_s3_prefix():
     dt = datetime.datetime(2023, 4, 11, 21, 2, 39, 4166)
     expected_lexicographic_date_s3_prefix = "2023/04/11"
     assert dt_to_lexicographic_date_s3_prefix(dt) == expected_lexicographic_date_s3_prefix
+
+
+def test_lexicographic_date_s3_prefix_to_dt():
+    lexicographi_date_s3_prefix = "2023/04/11"
+    expected_dt = datetime.datetime(2023, 4, 11)
+    assert lexicographic_date_s3_prefix_to_dt(lexicographi_date_s3_prefix) == expected_dt
