@@ -16,6 +16,8 @@ from news_aggregator_data_access_layer.constants import (
     ARTICLE_SOURCED_TAGS_FLAG,
     DATE_PUBLISHED_ARTICLE_REGEX,
     DT_LEXICOGRAPHIC_STR_FORMAT,
+    NO_CATEGORY_STR,
+    ArticleType,
     ResultRefTypes,
 )
 from news_aggregator_data_access_layer.utils.s3 import (
@@ -45,8 +47,7 @@ class RawArticle(BaseModel):
     topic: str
     # this is the topic that was discovered by an algo
     discovered_topic: Optional[str] = ""
-    requested_category: Optional[str] = ""
-    category: Optional[str] = ""
+    category: Optional[str] = NO_CATEGORY_STR
     title: str
     url: str
     author: Optional[str] = ""
@@ -56,6 +57,7 @@ class RawArticle(BaseModel):
     article_data: str
     # one of SUPPORTED_SORTING strings
     sorting: str
+    article_type: str = ArticleType.NEWS.value
     provider_domain: Optional[str] = ""
     article_processed_data: Optional[str] = ""
 

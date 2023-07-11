@@ -39,7 +39,6 @@ def test_news_topics_init():
     news_topics = NewsTopics(
         topic_id="topic_id",
         topic="topic",
-        category="category",
         is_active=True,
         is_published=False,
         date_created=TEST_DT,
@@ -52,7 +51,6 @@ def test_news_topics_init():
     )
     assert news_topics.topic_id == "topic_id"
     assert news_topics.topic == "topic"
-    assert news_topics.category == "category"
     assert news_topics.is_active == True
     assert news_topics.is_published == False
     assert news_topics.date_created == TEST_DT
@@ -125,7 +123,7 @@ def test_sourced_articles_init():
         date_published=TEST_DATE_STR,
         title="title",
         topic="topic",
-        labeled_category="labeled_category",
+        source_article_categories=["category"],
         source_article_ids=["source_article_ids"],
         source_article_urls=["source_article_urls"],
         providers=["cnn", "fox"],
@@ -142,7 +140,7 @@ def test_sourced_articles_init():
     assert sourced_article.date_published == TEST_DATE_STR
     assert sourced_article.title == "title"
     assert sourced_article.topic == "topic"
-    assert sourced_article.labeled_category == "labeled_category"
+    assert sourced_article.source_article_categories == ["category"]
     assert sourced_article.source_article_ids == ["source_article_ids"]
     assert sourced_article.source_article_urls == ["source_article_urls"]
     assert sourced_article.providers == ["cnn", "fox"]

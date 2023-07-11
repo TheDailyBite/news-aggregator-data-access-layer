@@ -18,7 +18,6 @@ from pynamodb_attributes.unicode_enum import UnicodeEnumAttribute
 from news_aggregator_data_access_layer.config import DEPLOYMENT_STAGE, DYNAMODB_HOST, REGION_NAME
 from news_aggregator_data_access_layer.constants import (
     AGGREGATOR_RUNS_TTL_EXPIRATION_DAYS,
-    ALL_CATEGORIES_STR,
     AggregatorRunStatus,
     ArticleApprovalStatus,
     NewsAggregatorsEnum,
@@ -103,9 +102,8 @@ class NewsTopics(Model):
         billing_mode = "PAY_PER_REQUEST"
 
     topic_id = UnicodeAttribute(hash_key=True)
-    # NOTE - maybe a GSI can be created for topic + category in the future to avoid a scan
+    # NOTE - maybe a GSI can be created for topic in the future to avoid a scan
     topic = UnicodeAttribute()
-    category = UnicodeAttribute()
     # this controls if aggregation and sourcing occur for this topic
     is_active = BooleanAttribute()
     # this controls if the topic is shown to users
@@ -297,7 +295,9 @@ class SourcedArticles(Model):
     title = UnicodeAttribute()
     topic = UnicodeAttribute()
     # NOTE - this is the labeled category, not the requested one
+    # we may add this capability in the future
     labeled_category = UnicodeAttribute(null=True)
+    source_article_categories = ListAttribute(of=UnicodeAttribute)
     source_article_ids = ListAttribute(of=UnicodeAttribute)
     source_article_urls = ListAttribute(of=UnicodeAttribute)
     providers = ListAttribute(of=UnicodeAttribute)

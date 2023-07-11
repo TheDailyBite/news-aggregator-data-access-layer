@@ -1,23 +1,23 @@
 import pytest
 
+from news_aggregator_data_access_layer.constants import NO_CATEGORY_STR
 from news_aggregator_data_access_layer.utils.news_topics import AggregatorCategoryMapper
 
 AGGREGATOR_CATEGORIES_MAPPER = {
-    "business": "Business",
-    "entertainment": "Entertainment",
-    "health": "Health",
-    "politics": "Politics",
-    "products": "Products",
-    "science-and-technology": "ScienceAndTechnology",
-    "sports": "Sports",
-    "us": "US",
-    "world": "World",
-    "world_africa": "World_Africa",
-    "world_americas": "World_Americas",
-    "world_asia": "World_Asia",
-    "world_europe": "World_Europe",
-    "world_middleeast": "World_MiddleEast",
-    "": "",
+    "Business": "business",
+    "Entertainment": "entertainment",
+    "Health": "health",
+    "Politics": "politics",
+    "Products": "products",
+    "ScienceAndTechnology": "science-and-technology",
+    "Sports": "sports",
+    "US": "us",
+    "World": "world",
+    "World_Africa": "world_africa",
+    "World_Americas": "world_americas",
+    "World_Asia": "world_asia",
+    "World_Europe": "world_europe",
+    "World_MiddleEast": "world_middleeast",
 }
 
 
@@ -30,9 +30,9 @@ def test_get_category(aggregator_category_mapper):
     """Tests the get_category() method."""
 
     # Test for a supported category.
-    bing_business_category = aggregator_category_mapper.get_category("business")
-    assert bing_business_category == "Business"
+    bing_business_category = aggregator_category_mapper.get_category("Business")
+    assert bing_business_category == "business"
 
     # Test for an unsupported category.
     unsupported_category = aggregator_category_mapper.get_category("foobar")
-    assert unsupported_category is None
+    assert unsupported_category == NO_CATEGORY_STR
