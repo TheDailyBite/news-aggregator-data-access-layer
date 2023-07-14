@@ -11,9 +11,10 @@ import pytest
 from news_aggregator_data_access_layer.assets.news_assets import CandidateArticles, RawArticle
 from news_aggregator_data_access_layer.config import CANDIDATE_ARTICLES_S3_BUCKET
 from news_aggregator_data_access_layer.constants import (
-    ALL_CATEGORIES_STR,
     ARTICLE_NOT_SOURCED_TAGS_FLAG,
     ARTICLE_SOURCED_TAGS_FLAG,
+    NO_CATEGORY_STR,
+    ArticleType,
     ResultRefTypes,
 )
 from news_aggregator_data_access_layer.utils.s3 import dt_to_lexicographic_s3_prefix
@@ -52,9 +53,9 @@ def test_raw_article():
     assert raw_article.article_data == "article_data"
     assert raw_article.sorting == "date"
     assert raw_article.discovered_topic == ""
-    assert raw_article.requested_category == ALL_CATEGORIES_STR
-    assert raw_article.category == ALL_CATEGORIES_STR
+    assert raw_article.category == NO_CATEGORY_STR
     assert raw_article.topic_id == TEST_TOPIC_ID
+    assert raw_article.article_type == ArticleType.NEWS.value
 
 
 def test_raw_article_process_data_with_provider_domain_no_article_processed_data():
@@ -82,9 +83,8 @@ def test_raw_article_process_data_with_provider_domain_no_article_processed_data
     assert raw_article.article_data == "article_data"
     assert raw_article.sorting == "date"
     assert raw_article.discovered_topic == ""
-    assert raw_article.requested_category == ALL_CATEGORIES_STR
-    assert raw_article.category == ALL_CATEGORIES_STR
-    assert raw_article.provider_domain == "inc"
+    assert raw_article.category == NO_CATEGORY_STR
+    assert raw_article.provider_domain == "inc.com"
     assert raw_article.article_processed_data == ""
 
 
@@ -138,8 +138,7 @@ def test_raw_article_parse_raw():
     assert raw_article.sorting == "date"
     assert raw_article.title == "the article title"
     assert raw_article.discovered_topic == ""
-    assert raw_article.requested_category == ALL_CATEGORIES_STR
-    assert raw_article.category == ALL_CATEGORIES_STR
+    assert raw_article.category == NO_CATEGORY_STR
     assert raw_article.dt_published == TEST_PUBLISHED_ISO_DT
     assert raw_article.aggregation_index == 0
 
@@ -159,7 +158,6 @@ def test_raw_article_parse_raw_with_optional():
                 "article_data": "article_data",
                 "sorting": "date",
                 "discovered_topic": "some_discovered_topic",
-                "requested_category": "some_requested_category",
                 "category": "some_category",
             }
         )
@@ -176,7 +174,6 @@ def test_raw_article_parse_raw_with_optional():
     assert raw_article.sorting == "date"
     assert raw_article.discovered_topic == "some_discovered_topic"
     assert raw_article.category == "some_category"
-    assert raw_article.requested_category == "some_requested_category"
 
 
 def test_candidate_articles_init():
@@ -205,7 +202,6 @@ def test_candidate_articles__get_raw_candidates_s3_object_prefix():
                 "article_data": "article_data",
                 "sorting": "date",
                 "discovered_topic": "some_discovered_topic",
-                "requested_category": "some_requested_category",
                 "category": "some_category",
             }
         )
@@ -214,7 +210,7 @@ def test_candidate_articles__get_raw_candidates_s3_object_prefix():
         result_ref_type=ResultRefTypes.S3,
         topic_id=TEST_TOPIC_ID,
     )
-    expected_object_key = f"raw_candidate_articles/{TEST_PUBLISHED_DATE}/{TEST_TOPIC_ID}/{raw_article.article_id}.json"
+    expected_object_key = f"raw_candidate_articles/{TEST_TOPIC_ID}/{TEST_PUBLISHED_DATE}/{raw_article.article_id}.json"
     actual_object_key = candidate_articles._get_raw_article_s3_object_key(raw_article)
     assert actual_object_key == expected_object_key
 
@@ -224,7 +220,7 @@ def test_candidate_articles__get_raw_article_s3_object_key():
         result_ref_type=ResultRefTypes.S3,
         topic_id=TEST_TOPIC_ID,
     )
-    expected_prefix = f"raw_candidate_articles/{TEST_PUBLISHED_DATE}/{TEST_TOPIC_ID}"
+    expected_prefix = f"raw_candidate_articles/{TEST_TOPIC_ID}/{TEST_PUBLISHED_DATE}"
     actual_prefix = candidate_articles._get_raw_candidates_s3_object_prefix(TEST_PUBLISHED_DATE)
     assert actual_prefix == expected_prefix
 

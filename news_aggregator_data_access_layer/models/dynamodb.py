@@ -18,7 +18,6 @@ from pynamodb_attributes.unicode_enum import UnicodeEnumAttribute
 from news_aggregator_data_access_layer.config import DEPLOYMENT_STAGE, DYNAMODB_HOST, REGION_NAME
 from news_aggregator_data_access_layer.constants import (
     AGGREGATOR_RUNS_TTL_EXPIRATION_DAYS,
-    ALL_CATEGORIES_STR,
     AggregatorRunStatus,
     ArticleApprovalStatus,
     NewsAggregatorsEnum,
@@ -39,6 +38,9 @@ def create_tables():
     if not UserTopicSubscriptions.exists():
         logger.info("Creating UserTopicSubscriptions table...")
         UserTopicSubscriptions.create_table(wait=True)
+    if not UntrustedNewsProviders.exists():
+        logger.info("Creating UntrustedNewsProviders table...")
+        UntrustedNewsProviders.create_table(wait=True)
     if not TrustedNewsProviders.exists():
         logger.info("Creating TrustedNewsProviders table...")
         TrustedNewsProviders.create_table(wait=True)
@@ -51,6 +53,9 @@ def create_tables():
     if not PublishedArticles.exists():
         logger.info("Creating PublishedArticles table...")
         PublishedArticles.create_table(wait=True)
+    if not PreviewUsers.exists():
+        logger.info("Creating PreviewUsers table...")
+        PreviewUsers.create_table(wait=True)
 
 
 def get_uuid4_attribute() -> str:
@@ -100,9 +105,8 @@ class NewsTopics(Model):
         billing_mode = "PAY_PER_REQUEST"
 
     topic_id = UnicodeAttribute(hash_key=True)
-    # NOTE - maybe a GSI can be created for topic + category in the future to avoid a scan
+    # NOTE - maybe a GSI can be created for topic in the future to avoid a scan
     topic = UnicodeAttribute()
-    category = UnicodeAttribute()
     # this controls if aggregation and sourcing occur for this topic
     is_active = BooleanAttribute()
     # this controls if the topic is shown to users
@@ -154,6 +158,49 @@ class UserTopicSubscriptions(Model):
     topic_id = UnicodeAttribute(range_key=True)
     date_subscribed = UTCDateTimeAttribute()
     gsi_1 = UserTopicSubscriptionsGSI1()
+
+
+class PreviewUsers(Model):
+    """
+    A DynamoDB Preview Users model.
+    NOTE - This is a temporary table to allow users to preview the service before it is released.
+    I manually crete the users in the AWS console and then will delete the table when the service is release and has auth built in.
+    """
+
+    class Meta:
+        table_name = f"preview-users-{DEPLOYMENT_STAGE}"
+        # Specifies the region
+        region = REGION_NAME
+        # Optional: Specify the hostname only if it needs to be changed from the default AWS setting
+        host = DYNAMODB_HOST
+        # Specifies the write capacity - unused for on-demand tables
+        write_capacity_units = 1
+        # Specifies the read capacity - unused for on-demand tables
+        read_capacity_units = 1
+        billing_mode = "PAY_PER_REQUEST"
+
+    user_id = UnicodeAttribute(hash_key=True)
+    name = UnicodeAttribute()
+
+
+class UntrustedNewsProviders(Model):
+    """
+    A DynamoDB Untrusted News Providers model.
+    """
+
+    class Meta:
+        table_name = f"untrusted-news-providers-{DEPLOYMENT_STAGE}"
+        # Specifies the region
+        region = REGION_NAME
+        # Optional: Specify the hostname only if it needs to be changed from the default AWS setting
+        host = DYNAMODB_HOST
+        # Specifies the write capacity - unused for on-demand tables
+        write_capacity_units = 1
+        # Specifies the read capacity - unused for on-demand tables
+        read_capacity_units = 1
+        billing_mode = "PAY_PER_REQUEST"
+
+    provider_url = UnicodeAttribute(hash_key=True)
 
 
 class TrustedNewsProviders(Model):
@@ -271,7 +318,9 @@ class SourcedArticles(Model):
     title = UnicodeAttribute()
     topic = UnicodeAttribute()
     # NOTE - this is the labeled category, not the requested one
+    # we may add this capability in the future
     labeled_category = UnicodeAttribute(null=True)
+    source_article_categories = ListAttribute(of=UnicodeAttribute)
     source_article_ids = ListAttribute(of=UnicodeAttribute)
     source_article_urls = ListAttribute(of=UnicodeAttribute)
     providers = ListAttribute(of=UnicodeAttribute)

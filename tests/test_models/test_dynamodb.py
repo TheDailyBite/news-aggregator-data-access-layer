@@ -14,9 +14,11 @@ from news_aggregator_data_access_layer.models.dynamodb import (
     AggregatorRuns,
     NewsAggregators,
     NewsTopics,
+    PreviewUsers,
     PublishedArticles,
     SourcedArticles,
     TrustedNewsProviders,
+    UntrustedNewsProviders,
     UserTopicSubscriptions,
 )
 
@@ -38,7 +40,6 @@ def test_news_topics_init():
     news_topics = NewsTopics(
         topic_id="topic_id",
         topic="topic",
-        category="category",
         is_active=True,
         is_published=False,
         date_created=TEST_DT,
@@ -51,7 +52,6 @@ def test_news_topics_init():
     )
     assert news_topics.topic_id == "topic_id"
     assert news_topics.topic == "topic"
-    assert news_topics.category == "category"
     assert news_topics.is_active == True
     assert news_topics.is_published == False
     assert news_topics.date_created == TEST_DT
@@ -83,6 +83,13 @@ def test_trusted_news_providers_init():
     assert trusted_news_providers.provider_name == "provider_name"
     assert trusted_news_providers.provider_domain == "venturebeat.com"
     assert trusted_news_providers.trust_score == 60
+
+
+def test_untrusted_news_providers_init():
+    untrusted_news_providers = UntrustedNewsProviders(
+        provider_url="venturebeat.com",
+    )
+    assert untrusted_news_providers.provider_url == "venturebeat.com"
 
 
 def test_aggregator_runs_init():
@@ -124,7 +131,7 @@ def test_sourced_articles_init():
         date_published=TEST_DATE_STR,
         title="title",
         topic="topic",
-        labeled_category="labeled_category",
+        source_article_categories=["category"],
         source_article_ids=["source_article_ids"],
         source_article_urls=["source_article_urls"],
         providers=["cnn", "fox"],
@@ -141,7 +148,7 @@ def test_sourced_articles_init():
     assert sourced_article.date_published == TEST_DATE_STR
     assert sourced_article.title == "title"
     assert sourced_article.topic == "topic"
-    assert sourced_article.labeled_category == "labeled_category"
+    assert sourced_article.source_article_categories == ["category"]
     assert sourced_article.source_article_ids == ["source_article_ids"]
     assert sourced_article.source_article_urls == ["source_article_urls"]
     assert sourced_article.providers == ["cnn", "fox"]
@@ -164,3 +171,9 @@ def test_published_articles_init():
     assert published_articles.topic_id == "topic_id"
     assert published_articles.publishing_date == TEST_DATE_STR
     assert published_articles.published_article_count == 10
+
+
+def test_preview_users_init():
+    preview_users = PreviewUsers(user_id="user_id", name="Peter Jackson")
+    assert preview_users.user_id == "user_id"
+    assert preview_users.name == "Peter Jackson"

@@ -161,6 +161,10 @@ def dt_to_lexicographic_date_s3_prefix(dt: datetime) -> str:
     return dt.strftime(DATE_LEXICOGRAPHIC_STR_FORMAT)
 
 
+def lexicographic_date_s3_prefix_to_dt(prefix: str) -> datetime:
+    return datetime.strptime(prefix, DATE_LEXICOGRAPHIC_STR_FORMAT)
+
+
 def dt_to_lexicographic_date_dash_s3_prefix(dt: datetime) -> str:
     return dt.strftime(DATE_LEXICOGRAPHIC_DASH_STR_FORMAT)
 

@@ -16,6 +16,8 @@ from news_aggregator_data_access_layer.constants import (
     ARTICLE_SOURCED_TAGS_FLAG,
     DATE_PUBLISHED_ARTICLE_REGEX,
     DT_LEXICOGRAPHIC_STR_FORMAT,
+    NO_CATEGORY_STR,
+    ArticleType,
     ResultRefTypes,
 )
 from news_aggregator_data_access_layer.utils.s3 import (
@@ -45,8 +47,7 @@ class RawArticle(BaseModel):
     topic: str
     # this is the topic that was discovered by an algo
     discovered_topic: Optional[str] = ""
-    requested_category: Optional[str] = ""
-    category: Optional[str] = ""
+    category: Optional[str] = NO_CATEGORY_STR
     title: str
     url: str
     author: Optional[str] = ""
@@ -56,6 +57,7 @@ class RawArticle(BaseModel):
     article_data: str
     # one of SUPPORTED_SORTING strings
     sorting: str
+    article_type: str = ArticleType.NEWS.value
     provider_domain: Optional[str] = ""
     article_processed_data: Optional[str] = ""
 
@@ -67,7 +69,15 @@ class RawArticle(BaseModel):
             article = NewsPlease.from_url(self.url)
             if not self.provider_domain:
                 ext_res = tldextract.extract(self.url)
-                self.provider_domain = ext_res.domain.lower()
+                parts = []
+                if ext_res.subdomain:
+                    if ext_res.subdomain.lower() != "www":
+                        parts.append(ext_res.subdomain.lower())
+                if ext_res.domain:
+                    parts.append(ext_res.domain.lower())
+                if ext_res.suffix:
+                    parts.append(ext_res.suffix.lower())
+                self.provider_domain = ".".join(parts)
             # NOTE - some articles return 200 but have no maintext so we skip them
             if not article or not article.maintext:
                 logger.warning(
@@ -168,9 +178,9 @@ class CandidateArticles:
         ]
 
     def _get_raw_candidates_s3_object_prefix(self, article_published_date: str) -> str:
-        return f"raw_candidate_articles/{article_published_date}/{self.topic_id}"
+        return f"raw_candidate_articles/{self.topic_id}/{article_published_date}"
 
-    # <bucket>/raw_candidate_articles/<article_published_date_str>/<topic_id>/<article_id>.json
+    # <bucket>/raw_candidate_articles/<topic_id>/<article_published_date_str>/<article_id>.json
     def _get_raw_article_s3_object_key(self, article: RawArticle) -> str:
         date_published = datetime.fromisoformat(article.dt_published)
         article_published_date = dt_to_lexicographic_date_s3_prefix(date_published)

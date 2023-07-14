@@ -8,13 +8,12 @@ DATE_LEXICOGRAPHIC_DASH_STR_FORMAT = "%Y-%m-%d"
 DATE_LEXICOGRAPHIC_STR_REGEX = r"^\d{4}/\d{2}/\d{2}$"
 RELEVANCE_SORTING_STR = "Relevance"
 DATE_SORTING_STR = "Date"
-ALL_CATEGORIES_STR = ""
+NO_CATEGORY_STR = "n/a"
 ARTICLE_NOT_SOURCED_TAGS_FLAG = "False"
 ARTICLE_SOURCED_TAGS_FLAG = "True"
 DATE_PUBLISHED_ARTICLE_REGEX = r"^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\+00\:00$"
 AGGREGATOR_RUNS_TTL_EXPIRATION_DAYS = 90
 SUPPORTED_AGGREGATION_CATEGORIES = {
-    ALL_CATEGORIES_STR,
     "business",
     "entertainment",
     "health",
@@ -83,3 +82,9 @@ class ArticleApprovalStatus(str, Enum):
     PENDING = "Pending"
     APPROVED = "Approved"
     REJECTED = "Rejected"
+
+
+class ArticleType(str, Enum):
+    """Enum for article type for a raw article."""
+
+    NEWS = "news"
