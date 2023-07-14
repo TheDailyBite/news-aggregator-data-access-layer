@@ -69,7 +69,15 @@ class RawArticle(BaseModel):
             article = NewsPlease.from_url(self.url)
             if not self.provider_domain:
                 ext_res = tldextract.extract(self.url)
-                self.provider_domain = ext_res.domain.lower()
+                parts = []
+                if ext_res.subdomain:
+                    if ext_res.subdomain.lower() != "www":
+                        parts.append(ext_res.subdomain.lower())
+                if ext_res.domain:
+                    parts.append(ext_res.domain.lower())
+                if ext_res.suffix:
+                    parts.append(ext_res.suffix.lower())
+                self.provider_domain = ".".join(parts)
             # NOTE - some articles return 200 but have no maintext so we skip them
             if not article or not article.maintext:
                 logger.warning(

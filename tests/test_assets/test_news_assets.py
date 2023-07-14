@@ -84,7 +84,7 @@ def test_raw_article_process_data_with_provider_domain_no_article_processed_data
     assert raw_article.sorting == "date"
     assert raw_article.discovered_topic == ""
     assert raw_article.category == NO_CATEGORY_STR
-    assert raw_article.provider_domain == "inc"
+    assert raw_article.provider_domain == "inc.com"
     assert raw_article.article_processed_data == ""
 
 
