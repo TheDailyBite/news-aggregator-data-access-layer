@@ -197,7 +197,7 @@ class CandidateArticles:
         return f"raw_candidate_articles/{self.topic_id}/{article_published_date}"
 
     def _get_raw_candidate_embeddings_s3_object_prefix(self, article_published_date: str) -> str:
-        return f"raw_candidate_articles/{self.topic_id}/{article_published_date}/embeddings"
+        return f"raw_candidate_article_embeddings/{self.topic_id}/{article_published_date}"
 
     # <bucket>/raw_candidate_articles/<topic_id>/<article_published_date_str>/<article_id>.json
     def _get_raw_article_s3_object_key(self, article: RawArticle) -> str:
