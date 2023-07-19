@@ -89,3 +89,25 @@ class ArticleType(str, Enum):
     """Enum for article type for a raw article."""
 
     NEWS = "news"
+
+
+class EmbeddingType(str, Enum):
+    """Enum for embedding type."""
+
+    TITLE = "title"
+    DESCRIPTION = "description"
+    CONTENT = "content"
+    TITLE_AND_DESCRIPTION = "title_and_description"
+    TITLE_AND_CONTENT = "title_and_content"
+    DESCRIPTION_AND_CONTENT = "description_and_content"
+    TITLE_AND_DESCRIPTION_AND_CONTENT = "title_and_description_and_content"
+
+    @classmethod
+    def get_member_by_value(cls, value):
+        """
+        Get enum member by value
+        """
+        for member in cls:
+            if member.value == value:
+                return member
+        raise ValueError(f"Invalid value {value} for enum {cls}")

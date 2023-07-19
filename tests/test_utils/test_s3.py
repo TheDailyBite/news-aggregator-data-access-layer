@@ -96,6 +96,35 @@ def test_read_objects_from_prefix_with_extension():
     assert objs_data[0][2] == test_metadata_csv
     assert objs_data[0][3] == dict()
 
+    # test reading objects with the specified prefix and file extension
+    objs_data = read_objects_from_prefix_with_extension(
+        bucket_name,
+        prefix,
+        file_extension,
+        success_marker_fn,
+        check_success_file=True,
+        s3_client=s3,
+    )
+    assert len(objs_data) == 2
+    assert objs_data[0][0] == prefix + "file1.txt"
+    assert objs_data[0][1] == "file1body"
+    assert objs_data[0][2] == dict()
+    assert objs_data[0][3] == dict()
+    assert objs_data[1][0] == prefix + "file2.txt"
+    assert objs_data[1][1] == "file2body"
+    assert objs_data[1][2] == dict()
+    assert objs_data[1][3] == test_tags
+
+    # test reading objects with a different file extension
+    objs_data = read_objects_from_prefix_with_extension(
+        bucket_name, prefix, ".csv", success_marker_fn, check_success_file=True, s3_client=s3
+    )
+    assert len(objs_data) == 1
+    assert objs_data[0][0] == prefix + "file3.csv"
+    assert objs_data[0][1] == "file3body"
+    assert objs_data[0][2] == test_metadata_csv
+    assert objs_data[0][3] == dict()
+
 
 @mock_s3
 def test_read_objects_from_prefix_with_extension_without_successfile_check():

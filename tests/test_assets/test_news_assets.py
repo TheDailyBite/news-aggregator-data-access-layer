@@ -8,7 +8,11 @@ from unittest import mock
 
 import pytest
 
-from news_aggregator_data_access_layer.assets.news_assets import CandidateArticles, RawArticle
+from news_aggregator_data_access_layer.assets.news_assets import (
+    CandidateArticles,
+    RawArticle,
+    RawArticleEmbedding,
+)
 from news_aggregator_data_access_layer.config import CANDIDATE_ARTICLES_S3_BUCKET
 from news_aggregator_data_access_layer.constants import (
     ARTICLE_NOT_SOURCED_TAGS_FLAG,
@@ -90,6 +94,7 @@ def test_raw_article_process_data_with_provider_domain_no_article_processed_data
 
 def test_raw_article_get_text():
     expected_text = "Some article text"
+    expected_text_description = "Some article text description"
     with mock.patch(
         "news_aggregator_data_access_layer.assets.news_assets.RawArticle.process_article_data"
     ) as mock_process_article_data:
@@ -110,6 +115,9 @@ def test_raw_article_get_text():
         raw_article.article_full_text = expected_text
         actual_text = raw_article.get_article_text()
         assert expected_text == actual_text
+        raw_article.article_text_description = expected_text_description
+        actual_article_text_description = raw_article.get_article_text_description()
+        assert actual_article_text_description == expected_text_description
 
 
 def test_raw_article_parse_raw():
@@ -174,6 +182,19 @@ def test_raw_article_parse_raw_with_optional():
     assert raw_article.sorting == "date"
     assert raw_article.discovered_topic == "some_discovered_topic"
     assert raw_article.category == "some_category"
+
+
+def test_raw_article_embeddings():
+    raw_article_embedding = RawArticleEmbedding(
+        article_id="article_id",
+        embedding_type="embedding_type",
+        embedding_model_name="ada-2",
+        embedding=[0.1, 0.55, 0.2],
+    )
+    assert raw_article_embedding.article_id == "article_id"
+    assert raw_article_embedding.embedding_type == "embedding_type"
+    assert raw_article_embedding.embedding_model_name == "ada-2"
+    assert raw_article_embedding.embedding == [0.1, 0.55, 0.2]
 
 
 def test_candidate_articles_init():
@@ -650,6 +671,127 @@ def test_candidate_articles__store_articles_in_s3():
             "aggregation_run_id": TEST_AGGREGATOR_RUN_ID,
         }
         actual_result = candidate_articles._store_articles_in_s3(**kwargs)
+        assert actual_result[0] == expected_result[0]
+        assert set(actual_result[1]) == set(expected_result[1])
+
+
+def test_candidate_articles_store_embeddings():
+    prefixes = ["prefix1", "prefix2"]
+    candidate_articles = CandidateArticles(
+        result_ref_type=ResultRefTypes.S3,
+        topic_id=TEST_TOPIC_ID,
+    )
+    raw_article_1 = RawArticle(
+        article_id="article_id",
+        aggregator_id="aggregator_id",
+        dt_published=TEST_PUBLISHED_ISO_DT,
+        aggregation_index=0,
+        topic_id=TEST_TOPIC_ID,
+        topic="topic",
+        title="the article title",
+        url="url",
+        article_data="article_data",
+        sorting="date",
+    )
+    raw_article_2 = RawArticle(
+        article_id="article_id 2",
+        aggregator_id="aggregator_id",
+        dt_published=TEST_PUBLISHED_ISO_DT,
+        aggregation_index=1,
+        topic_id=TEST_TOPIC_ID,
+        topic="topic",
+        title="the article title 2",
+        url="url 2",
+        article_data="article_data 2",
+        sorting="date",
+    )
+    raw_articles = [raw_article_1, raw_article_2]
+    raw_article_1_embedding = RawArticleEmbedding(
+        article_id="article_id",
+        embedding_type="embedding_type",
+        embedding_model_name="embedding_model_name",
+        embedding=[0.1, 0.2, 0.3],
+    )
+    raw_article_2_embedding = RawArticleEmbedding(
+        article_id="article_id 2",
+        embedding_type="embedding_type",
+        embedding_model_name="embedding_model_name",
+        embedding=[0.15, 0.25, 0.35],
+    )
+    raw_articles_embeddings = [raw_article_1_embedding, raw_article_2_embedding]
+    result = (CANDIDATE_ARTICLES_S3_BUCKET, prefixes)
+    with mock.patch.object(
+        candidate_articles, "_store_embeddings_in_s3"
+    ) as mock_store_embeddings_in_s3:
+        kwargs = {
+            "s3_client": "s3_client",
+            "articles": raw_articles,
+            "embeddings": raw_articles_embeddings,
+        }
+        mock_store_embeddings_in_s3.return_value = result
+        expected_result = result
+        actual_result = candidate_articles.store_embeddings(**kwargs)
+        mock_store_embeddings_in_s3.assert_called_once_with(**kwargs)
+        assert actual_result == expected_result
+
+
+def test_candidate_articles__store_embeddings_in_s3():
+    candidate_articles = CandidateArticles(
+        result_ref_type=ResultRefTypes.S3,
+        topic_id=TEST_TOPIC_ID,
+    )
+    prefixes = [
+        candidate_articles._get_raw_candidate_embeddings_s3_object_prefix(TEST_PUBLISHED_DATE),
+        candidate_articles._get_raw_candidate_embeddings_s3_object_prefix(TEST_PUBLISHED_DATE_2),
+    ]
+    raw_article_1 = RawArticle(
+        article_id="article_id",
+        aggregator_id="aggregator_id",
+        dt_published=TEST_PUBLISHED_ISO_DT,
+        aggregation_index=0,
+        topic_id=TEST_TOPIC_ID,
+        topic="topic",
+        title="the article title",
+        url="url",
+        article_data="article_data",
+        sorting="date",
+    )
+    raw_article_2 = RawArticle(
+        article_id="article_id 2",
+        aggregator_id="aggregator_id",
+        dt_published=TEST_PUBLISHED_ISO_DT_2,
+        aggregation_index=1,
+        topic_id=TEST_TOPIC_ID,
+        topic="topic",
+        title="the article title 2",
+        url="url 2",
+        article_data="article_data 2",
+        sorting="date",
+    )
+    raw_articles = [raw_article_1, raw_article_2]
+    raw_article_1_embedding = RawArticleEmbedding(
+        article_id="article_id",
+        embedding_type="embedding_type",
+        embedding_model_name="embedding_model_name",
+        embedding=[0.1, 0.2, 0.3],
+    )
+    raw_article_2_embedding = RawArticleEmbedding(
+        article_id="article_id 2",
+        embedding_type="embedding_type",
+        embedding_model_name="embedding_model_name",
+        embedding=[0.15, 0.25, 0.35],
+    )
+    raw_articles_embeddings = [raw_article_1_embedding, raw_article_2_embedding]
+    expected_result = (CANDIDATE_ARTICLES_S3_BUCKET, prefixes)
+    with mock.patch(
+        "news_aggregator_data_access_layer.assets.news_assets.store_object_in_s3"
+    ) as mock_store_object_in_s3:
+        kwargs = {
+            "s3_client": "s3_client",
+            "articles": raw_articles,
+            "embeddings": raw_articles_embeddings,
+        }
+        actual_result = candidate_articles._store_embeddings_in_s3(**kwargs)
         assert actual_result[0] == expected_result[0]
         assert set(actual_result[1]) == set(expected_result[1])
 

@@ -53,6 +53,8 @@ class RawArticle(BaseModel):
     author: Optional[str] = ""
     article_full_text: Optional[str] = ""
     article_text_snippet: Optional[str] = ""
+    # the meta description included in many articles
+    article_text_description: Optional[str] = ""
     # this is the json string of the Article representation of the aggregator used
     article_data: str
     # one of SUPPORTED_SORTING strings
@@ -86,6 +88,8 @@ class RawArticle(BaseModel):
                 # TODO - emit metric with domain
                 return
             self.article_full_text = article.maintext
+            if not self.article_text_description:
+                self.article_text_description = article.description
             article_processed_data_dict = article.get_serializable_dict().pop("maintext")
             self.article_processed_data = json.dumps(article_processed_data_dict)
 
@@ -93,6 +97,18 @@ class RawArticle(BaseModel):
         if not self.article_full_text:
             self.process_article_data()
         return self.article_full_text
+
+    def get_article_text_description(self) -> str:
+        if not self.article_text_description:
+            self.process_article_data()
+        return self.article_text_description
+
+
+class RawArticleEmbedding(BaseModel):
+    article_id: str
+    embedding_type: str
+    embedding_model_name: str
+    embedding: list[float]
 
 
 class CandidateArticles:
@@ -180,11 +196,20 @@ class CandidateArticles:
     def _get_raw_candidates_s3_object_prefix(self, article_published_date: str) -> str:
         return f"raw_candidate_articles/{self.topic_id}/{article_published_date}"
 
+    def _get_raw_candidate_embeddings_s3_object_prefix(self, article_published_date: str) -> str:
+        return f"raw_candidate_article_embeddings/{self.topic_id}/{article_published_date}"
+
     # <bucket>/raw_candidate_articles/<topic_id>/<article_published_date_str>/<article_id>.json
     def _get_raw_article_s3_object_key(self, article: RawArticle) -> str:
         date_published = datetime.fromisoformat(article.dt_published)
         article_published_date = dt_to_lexicographic_date_s3_prefix(date_published)
         return f"{self._get_raw_candidates_s3_object_prefix(article_published_date)}/{article.article_id}{self.candidate_article_s3_extension}"
+
+    # <bucket>/raw_candidate_articles/<topic_id>/<article_published_date_str>/embeddings/<article_id>.json
+    def _get_raw_article_embedding_s3_object_key(self, article: RawArticle) -> str:
+        date_published = datetime.fromisoformat(article.dt_published)
+        article_published_date = dt_to_lexicographic_date_s3_prefix(date_published)
+        return f"{self._get_raw_candidate_embeddings_s3_object_prefix(article_published_date)}/{article.article_id}{self.candidate_article_s3_extension}"
 
     def store_articles(self, **kwargs: Any) -> tuple[str, list[str]]:
         if self.result_ref_type == ResultRefTypes.S3:
@@ -227,6 +252,46 @@ class CandidateArticles:
                 object_tags=tags,
                 object_metadata=metadata,
                 overwrite_allowed=False,
+                s3_client=s3_client,
+            )
+        return CANDIDATE_ARTICLES_S3_BUCKET, list(prefixes)
+
+    def store_embeddings(self, **kwargs: Any) -> tuple[str, list[str]]:
+        if self.result_ref_type == ResultRefTypes.S3:
+            return self._store_embeddings_in_s3(**kwargs)
+        else:
+            raise NotImplementedError(
+                f"Result reference type {self.result_ref_type} not implemented"
+            )
+
+    def _store_embeddings_in_s3(self, **kwargs: Any) -> tuple[str, list[str]]:
+        s3_client = kwargs.get("s3_client")
+        if not s3_client:
+            raise ValueError("s3_client parameter cannot be null")
+        articles: list[RawArticle] = kwargs["articles"]
+        if not all(isinstance(article, RawArticle) for article in articles):
+            raise ValueError("articles must be a list of RawArticle")
+        embeddings: list[RawArticleEmbedding] = kwargs["embeddings"]
+        if not all(isinstance(embedding, RawArticleEmbedding) for embedding in embeddings):
+            raise ValueError("embeddings must be a list of RawArticleEmbedding")
+        prefixes = set()
+        for article, embedding in zip(articles, embeddings):
+            if article.article_id != embedding.article_id:
+                raise ValueError(
+                    "article_id in article and embedding not matching.Articles and embeddings must be aligned"
+                )
+            date_published = datetime.fromisoformat(article.dt_published)
+            article_published_date = dt_to_lexicographic_date_s3_prefix(date_published)
+            prefix = self._get_raw_candidate_embeddings_s3_object_prefix(article_published_date)
+            prefixes.add(prefix)
+            # all stored as json
+            object_key = self._get_raw_article_embedding_s3_object_key(article)
+            body = embedding.json()
+            store_object_in_s3(
+                CANDIDATE_ARTICLES_S3_BUCKET,
+                object_key,
+                body,
+                overwrite_allowed=True,
                 s3_client=s3_client,
             )
         return CANDIDATE_ARTICLES_S3_BUCKET, list(prefixes)
