@@ -91,8 +91,8 @@ class ArticleType(str, Enum):
     NEWS = "news"
 
 
-class EmbeddingsAtttributesUsedTypes(str, Enum):
-    """Enum for embeddings attributes used types."""
+class EmbeddingType(str, Enum):
+    """Enum for embedding type."""
 
     TITLE = "title"
     DESCRIPTION = "description"
