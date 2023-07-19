@@ -118,6 +118,7 @@ class NewsTopics(Model):
     last_publishing_date = UTCDateTimeAttribute(null=True)
     bing_aggregation_last_end_time = UTCDateTimeAttribute(null=True)
     news_api_org_aggregation_last_end_time = UTCDateTimeAttribute(null=True)
+    the_news_api_com_aggregation_last_end_time = UTCDateTimeAttribute(null=True)
     # NOTE - add other aggregator attributes here
     version = VersionAttribute()
 

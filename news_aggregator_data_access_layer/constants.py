@@ -38,6 +38,7 @@ class NewsAggregatorsEnum(str, Enum):
 
     BING_NEWS = "bingnews"
     NEWS_API_ORG = "newsapi.org"
+    THE_NEWS_API_COM = "thenewsapi.com"
 
     @classmethod
     def get_member_by_value(cls, value):
