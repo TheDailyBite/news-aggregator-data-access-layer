@@ -38,9 +38,6 @@ def create_tables():
     if not UserTopicSubscriptions.exists():
         logger.info("Creating UserTopicSubscriptions table...")
         UserTopicSubscriptions.create_table(wait=True)
-    if not UntrustedNewsProviders.exists():
-        logger.info("Creating UntrustedNewsProviders table...")
-        UntrustedNewsProviders.create_table(wait=True)
     if not TrustedNewsProviders.exists():
         logger.info("Creating TrustedNewsProviders table...")
         TrustedNewsProviders.create_table(wait=True)
@@ -184,26 +181,6 @@ class PreviewUsers(Model):
     name = UnicodeAttribute()
 
 
-class UntrustedNewsProviders(Model):
-    """
-    A DynamoDB Untrusted News Providers model.
-    """
-
-    class Meta:
-        table_name = f"untrusted-news-providers-{DEPLOYMENT_STAGE}"
-        # Specifies the region
-        region = REGION_NAME
-        # Optional: Specify the hostname only if it needs to be changed from the default AWS setting
-        host = DYNAMODB_HOST
-        # Specifies the write capacity - unused for on-demand tables
-        write_capacity_units = 1
-        # Specifies the read capacity - unused for on-demand tables
-        read_capacity_units = 1
-        billing_mode = "PAY_PER_REQUEST"
-
-    provider_url = UnicodeAttribute(hash_key=True)
-
-
 class TrustedNewsProviders(Model):
     """
     A DynamoDB Trusted News Providers model.
@@ -221,9 +198,12 @@ class TrustedNewsProviders(Model):
         read_capacity_units = 1
         billing_mode = "PAY_PER_REQUEST"
 
-    provider_domain = UnicodeAttribute(hash_key=True)
+    language = UnicodeAttribute(hash_key=True)
+    provider_domain = UnicodeAttribute(range_key=True)
     provider_name = UnicodeAttribute()
+    country = UnicodeAttribute()
     trust_score = NumberAttribute(default_for_new=50)
+    is_active = BooleanAttribute()
 
 
 class AggregatorRuns(Model):
