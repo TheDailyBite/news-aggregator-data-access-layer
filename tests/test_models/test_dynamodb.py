@@ -18,7 +18,6 @@ from news_aggregator_data_access_layer.models.dynamodb import (
     PublishedArticles,
     SourcedArticles,
     TrustedNewsProviders,
-    UntrustedNewsProviders,
     UserTopicSubscriptions,
 )
 
@@ -78,20 +77,19 @@ def test_user_topic_subscriptions_init():
 
 def test_trusted_news_providers_init():
     trusted_news_providers = TrustedNewsProviders(
+        language="en",
         provider_domain="venturebeat.com",
-        provider_name="provider_name",
+        provider_name="Venture Beat",
+        country="USA",
         trust_score=60,
+        is_active=True,
     )
-    assert trusted_news_providers.provider_name == "provider_name"
+    assert trusted_news_providers.language == "en"
+    assert trusted_news_providers.provider_name == "Venture Beat"
     assert trusted_news_providers.provider_domain == "venturebeat.com"
     assert trusted_news_providers.trust_score == 60
-
-
-def test_untrusted_news_providers_init():
-    untrusted_news_providers = UntrustedNewsProviders(
-        provider_url="venturebeat.com",
-    )
-    assert untrusted_news_providers.provider_url == "venturebeat.com"
+    assert trusted_news_providers.is_active == True
+    assert trusted_news_providers.country == "USA"
 
 
 def test_aggregator_runs_init():
