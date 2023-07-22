@@ -97,10 +97,14 @@ class EmbeddingType(str, Enum):
     TITLE = "title"
     DESCRIPTION = "description"
     CONTENT = "content"
-    TITLE_AND_DESCRIPTION = "title_and_description"
-    TITLE_AND_CONTENT = "title_and_content"
-    DESCRIPTION_AND_CONTENT = "description_and_content"
-    TITLE_AND_DESCRIPTION_AND_CONTENT = "title_and_description_and_content"
+    TITLE_AND_DESCRIPTION_CONCAT = "title_and_description_concat"
+    TITLE_AND_CONTENT_CONCAT = "title_and_content_concat"
+    DESCRIPTION_AND_CONTENT_CONCAT = "description_and_content_concat"
+    TITLE_AND_DESCRIPTION_AND_CONTENT_CONCAT = "title_and_description_and_content_concat"
+    TITLE_AND_DESCRIPTION_AVG = "title_and_description_avg"
+    TITLE_AND_CONTENT_AVG = "title_and_content_avg"
+    DESCRIPTION_AND_CONTENT_AVG = "description_and_content_avg"
+    TITLE_AND_DESCRIPTION_AND_CONTENT_AVG = "title_and_description_and_content_avg"
 
     @classmethod
     def get_member_by_value(cls, value):
