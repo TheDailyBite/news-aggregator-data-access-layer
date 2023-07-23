@@ -53,6 +53,9 @@ def create_tables():
     if not PreviewUsers.exists():
         logger.info("Creating PreviewUsers table...")
         PreviewUsers.create_table(wait=True)
+    if not NewsTopicSuggestions.exists():
+        logger.info("Creating NewsTopicSuggestions table...")
+        NewsTopicSuggestions.create_table(wait=True)
 
 
 def get_uuid4_attribute() -> str:
