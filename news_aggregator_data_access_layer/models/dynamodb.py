@@ -342,3 +342,24 @@ class PublishedArticles(Model):
     publishing_date = UnicodeAttribute(range_key=True)
     published_article_count = NumberAttribute(default_for_new=0)
     version = VersionAttribute()
+
+
+class NewsTopicSuggestions(Model):
+    """
+    A DynamoDB News Topic Suggestions model.
+    """
+
+    class Meta:
+        table_name = f"news-topic-suggestions-{DEPLOYMENT_STAGE}"
+        # Specifies the region
+        region = REGION_NAME
+        # Optional: Specify the hostname only if it needs to be changed from the default AWS setting
+        host = DYNAMODB_HOST
+        # Specifies the write capacity - unused for on-demand tables
+        write_capacity_units = 1
+        # Specifies the read capacity - unused for on-demand tables
+        read_capacity_units = 1
+        billing_mode = "PAY_PER_REQUEST"
+
+    topic = UnicodeAttribute(hash_key=True)
+    created_at = UTCDateTimeAttribute()
