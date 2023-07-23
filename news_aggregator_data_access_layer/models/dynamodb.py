@@ -364,5 +364,6 @@ class NewsTopicSuggestions(Model):
         read_capacity_units = 1
         billing_mode = "PAY_PER_REQUEST"
 
-    topic = UnicodeAttribute(hash_key=True)
+    user_id = UnicodeAttribute(hash_key=True)
+    topic = UnicodeAttribute(range_key=True)
     created_at = UTCDateTimeAttribute()
