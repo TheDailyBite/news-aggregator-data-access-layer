@@ -21,6 +21,7 @@ from news_aggregator_data_access_layer.constants import (
     AggregatorRunStatus,
     ArticleApprovalStatus,
     NewsAggregatorsEnum,
+    NewsletterFrequency,
     ResultRefTypes,
 )
 from news_aggregator_data_access_layer.utils.telemetry import setup_logger
@@ -182,6 +183,8 @@ class PreviewUsers(Model):
 
     user_id = UnicodeAttribute(hash_key=True)
     name = UnicodeAttribute()
+    newsletter_interest_email = UnicodeAttribute(null=True)
+    ai_news_agent_interest_email = UnicodeAttribute(null=True)
 
 
 class TrustedNewsProviders(Model):

@@ -8,6 +8,7 @@ from news_aggregator_data_access_layer.constants import (
     AggregatorRunStatus,
     ArticleApprovalStatus,
     NewsAggregatorsEnum,
+    NewsletterFrequency,
     ResultRefTypes,
 )
 from news_aggregator_data_access_layer.models.dynamodb import (
@@ -178,6 +179,21 @@ def test_preview_users_init():
     preview_users = PreviewUsers(user_id="user_id", name="Peter Jackson")
     assert preview_users.user_id == "user_id"
     assert preview_users.name == "Peter Jackson"
+    assert preview_users.newsletter_interest_email == None
+    assert preview_users.ai_news_agent_interest_email == None
+
+
+def test_preview_users_init_non_null_attrs():
+    preview_users = PreviewUsers(
+        user_id="user_id",
+        name="Peter Jackson",
+        newsletter_interest_email="email",
+        ai_news_agent_interest_email="email",
+    )
+    assert preview_users.user_id == "user_id"
+    assert preview_users.name == "Peter Jackson"
+    assert preview_users.newsletter_interest_email == "email"
+    assert preview_users.ai_news_agent_interest_email == "email"
 
 
 def test_news_topic_suggestions_init():

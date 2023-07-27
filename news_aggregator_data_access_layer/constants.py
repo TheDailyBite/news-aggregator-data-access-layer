@@ -115,3 +115,21 @@ class EmbeddingType(str, Enum):
             if member.value == value:
                 return member
         raise ValueError(f"Invalid value {value} for enum {cls}")
+
+
+class NewsletterFrequency(str, Enum):
+    """Enum for newsletter frequency."""
+
+    DAILY = "daily"
+    WEEKLY = "weekly"
+    MONTHLY = "monthly"
+
+    @classmethod
+    def get_member_by_value(cls, value):
+        """
+        Get enum member by value
+        """
+        for member in cls:
+            if member.value == value:
+                return member
+        raise ValueError(f"Invalid value {value} for enum {cls}")
